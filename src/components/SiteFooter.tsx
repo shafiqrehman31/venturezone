@@ -110,8 +110,8 @@ export function SiteFooter({
               international founders launching in Dubai Free Zones and Mainland.
             </p>
 
-            {/* Social Media Links */}
-            {socialLinks.length > 0 && (
+            {/* Social Media Links (hidden for now; ready for future activation) */}
+            {false && socialLinks.length > 0 && (
               <div className="mt-5">
                 <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                   Connect With Us

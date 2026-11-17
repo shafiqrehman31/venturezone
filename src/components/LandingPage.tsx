@@ -13,7 +13,6 @@ import {
   ChevronDown,
   FileDown,
   Loader2,
-  MessageCircle,
   Search,
   Star,
   X,
@@ -299,8 +298,6 @@ export function LandingPage() {
     const match = inventory.find((item) => item.packageKey === packageKey);
     return match ? match.stockLevel : null;
   }
-
-  const cleanWaDigits = cms.whatsappNumber.replace(/[^\d]/g, '');
 
   const pricingPackages = [
     {
@@ -1018,26 +1015,13 @@ export function LandingPage() {
 
       {/* Sticky Mobile Bottom Action Bar */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/95 px-3 py-2 backdrop-blur-xl shadow-[0_-4px_16px_rgba(17,24,39,0.08)] md:hidden">
-        <div className="grid grid-cols-2 gap-2.5">
-          <button
-            type="button"
-            onClick={() => selectPackageAndScroll('Free Zone', 1)}
-            className="flex min-h-[48px] items-center justify-center rounded-xl bg-[#ff0031] px-3 text-xs font-bold text-white"
-          >
-            Get Instant Quote
-          </button>
-          <a
-            href={`https://wa.me/${cleanWaDigits}?text=${encodeURIComponent(
-              `Hello ${!cms.siteName || cms.siteName === 'Meridian Setup' ? 'venturezoneuae.com' : cms.siteName}, I need a Dubai company formation quote.`
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex min-h-[48px] items-center justify-center gap-1.5 rounded-xl bg-[#00b294] px-3 text-xs font-bold text-white"
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span>WhatsApp Us</span>
-          </a>
-        </div>
+        <button
+          type="button"
+          onClick={() => selectPackageAndScroll('Free Zone', 1)}
+          className="flex min-h-[48px] w-full items-center justify-center rounded-xl bg-[#ff0031] px-4 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#D90029]"
+        >
+          Get Instant Quote
+        </button>
       </div>
 
       {/* Floating WhatsApp AI Chatbot */}
