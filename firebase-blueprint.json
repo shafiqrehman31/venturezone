@@ -1,0 +1,653 @@
+{
+  "entities": {
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Authorized administrator account permitted to manage orders, CMS, inventory, and CRM sync.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "role": {
+          "type": "string",
+          "enum": ["super_admin", "operations"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "displayName", "role", "createdAt"]
+    },
+    "FormationOrder": {
+      "title": "FormationOrder",
+      "description": "Customer company formation quote, lead capture, and order fulfillment record.",
+      "type": "object",
+      "properties": {
+        "trackingCode": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 32,
+          "pattern": "^[A-Z0-9\\-]+$"
+        },
+        "fullName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "countryCode": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 8
+        },
+        "whatsappNumber": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 32
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "jurisdiction": {
+          "type": "string",
+          "enum": ["Free Zone", "Mainland"]
+        },
+        "authority": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "businessActivity": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "visaCount": {
+          "type": "number"
+        },
+        "packageId": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 64
+        },
+        "packageName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "estimatedTotalAed": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "New Lead",
+            "KYC Submitted",
+            "Trade Name Approved",
+            "E-License Issued",
+            "Emirates ID & Bank",
+            "Completed"
+          ]
+        },
+        "currentStep": {
+          "type": "number"
+        },
+        "source": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "pipedriveSyncStatus": {
+          "type": "string",
+          "enum": ["pending", "synced", "pending_config", "failed"]
+        },
+        "pipedriveDealId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "pipedrivePersonId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "pipedriveError": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "trackingCode",
+        "fullName",
+        "countryCode",
+        "whatsappNumber",
+        "jurisdiction",
+        "authority",
+        "businessActivity",
+        "visaCount",
+        "packageId",
+        "packageName",
+        "estimatedTotalAed",
+        "status",
+        "currentStep",
+        "pipedriveSyncStatus",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "OrderStatusPublic": {
+      "title": "OrderStatusPublic",
+      "description": "Non-PII public formation progress status lookup keyed by trackingCode.",
+      "type": "object",
+      "properties": {
+        "trackingCode": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 32,
+          "pattern": "^[A-Z0-9\\-]+$"
+        },
+        "jurisdiction": {
+          "type": "string",
+          "enum": ["Free Zone", "Mainland"]
+        },
+        "authority": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "packageName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "visaCount": {
+          "type": "number"
+        },
+        "estimatedTotalAed": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "New Lead",
+            "KYC Submitted",
+            "Trade Name Approved",
+            "E-License Issued",
+            "Emirates ID & Bank",
+            "Completed"
+          ]
+        },
+        "currentStep": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "trackingCode",
+        "jurisdiction",
+        "authority",
+        "packageName",
+        "visaCount",
+        "estimatedTotalAed",
+        "status",
+        "currentStep",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "InventoryItem": {
+      "title": "InventoryItem",
+      "description": "License quota, visa allocation, and banking fast-track slot inventory with customizable low-stock thresholds.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "category": {
+          "type": "string",
+          "enum": ["License Quota", "Visa Allocation", "Banking Slot", "VIP Medical"]
+        },
+        "packageKey": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "stockLevel": {
+          "type": "number"
+        },
+        "maxCapacity": {
+          "type": "number"
+        },
+        "lowThreshold": {
+          "type": "number"
+        },
+        "alertEnabled": {
+          "type": "boolean"
+        },
+        "alertChannel": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "unitCostAed": {
+          "type": "number"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "category",
+        "stockLevel",
+        "maxCapacity",
+        "lowThreshold",
+        "alertEnabled",
+        "unitCostAed",
+        "updatedAt"
+      ]
+    },
+    "InventoryAlert": {
+      "title": "InventoryAlert",
+      "description": "Triggered low-inventory alert record for operations review.",
+      "type": "object",
+      "properties": {
+        "inventoryId": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "itemName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "stockLevel": {
+          "type": "number"
+        },
+        "threshold": {
+          "type": "number"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["warning", "critical"]
+        },
+        "acknowledged": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "inventoryId",
+        "itemName",
+        "stockLevel",
+        "threshold",
+        "severity",
+        "acknowledged",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CmsLandingConfig": {
+      "title": "CmsLandingConfig",
+      "description": "Live editable landing page copy, pricing overrides, and conversion banner settings.",
+      "type": "object",
+      "properties": {
+        "heroHeadline": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 160
+        },
+        "heroSubheadline": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 320
+        },
+        "whatsappNumber": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 32
+        },
+        "phoneDisplay": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 32
+        },
+        "googleRatingScore": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16
+        },
+        "googleReviewCount": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "zeroVisaPriceAed": {
+          "type": "number"
+        },
+        "oneVisaPriceAed": {
+          "type": "number"
+        },
+        "mainlandPriceAed": {
+          "type": "number"
+        },
+        "promoNotice": {
+          "type": "string",
+          "maxLength": 180
+        },
+        "logoDataUrl": {
+          "type": "string",
+          "maxLength": 150000
+        },
+        "footerLogoDataUrl": {
+          "type": "string",
+          "maxLength": 150000
+        },
+        "faviconDataUrl": {
+          "type": "string",
+          "maxLength": 80000
+        },
+        "socialLinkedin": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "socialInstagram": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "socialX": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "socialYoutube": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "socialFacebook": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "siteName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "heroHeadline",
+        "heroSubheadline",
+        "whatsappNumber",
+        "phoneDisplay",
+        "googleRatingScore",
+        "googleReviewCount",
+        "zeroVisaPriceAed",
+        "oneVisaPriceAed",
+        "mainlandPriceAed",
+        "updatedAt"
+      ]
+    },
+    "NavMenuItem": {
+      "title": "NavMenuItem",
+      "description": "Header navigation menu item and editable page content managed from Admin CMS.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9\\-]+$"
+        },
+        "order": {
+          "type": "number"
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "isBuiltIn": {
+          "type": "boolean"
+        },
+        "pageTitle": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 160
+        },
+        "pageSubtitle": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "pageBody": {
+          "type": "string",
+          "maxLength": 12000
+        },
+        "ctaLabel": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "slug",
+        "order",
+        "visible",
+        "isBuiltIn",
+        "pageTitle",
+        "updatedAt"
+      ]
+    },
+    "BlogPost": {
+      "title": "BlogPost",
+      "description": "Founder guide or blog article managed through the admin CMS.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 180
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 180,
+          "pattern": "^[a-z0-9\\-]+$"
+        },
+        "category": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60
+        },
+        "excerpt": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 400
+        },
+        "content": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 15000
+        },
+        "readTimeMinutes": {
+          "type": "number"
+        },
+        "authorName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "status": {
+          "type": "string",
+          "enum": ["draft", "published"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "title",
+        "slug",
+        "category",
+        "excerpt",
+        "content",
+        "readTimeMinutes",
+        "authorName",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ReportExport": {
+      "title": "ReportExport",
+      "description": "Management reporting schedule and automated export history entry.",
+      "type": "object",
+      "properties": {
+        "reportName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 140
+        },
+        "reportType": {
+          "type": "string",
+          "enum": ["orders_csv", "analytics_summary", "inventory_audit", "pipedrive_sync_log"]
+        },
+        "cadence": {
+          "type": "string",
+          "enum": ["manual", "daily", "weekly"]
+        },
+        "recordCount": {
+          "type": "number"
+        },
+        "totalValueAed": {
+          "type": "number"
+        },
+        "generatedBy": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "reportName",
+        "reportType",
+        "cadence",
+        "recordCount",
+        "totalValueAed",
+        "generatedBy",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/admins/{userId}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Authorized admin accounts for RBAC checks."
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/FormationOrder" },
+      "description": "Private customer formation orders and lead records containing PII."
+    },
+    "/orderStatus/{trackingCode}": {
+      "schema": { "$ref": "#/entities/OrderStatusPublic" },
+      "description": "Non-PII public formation status projection accessible only by exact trackingCode."
+    },
+    "/inventory/{itemId}": {
+      "schema": { "$ref": "#/entities/InventoryItem" },
+      "description": "Package quotas, visa allocations, and banking slot inventory levels."
+    },
+    "/alerts/{alertId}": {
+      "schema": { "$ref": "#/entities/InventoryAlert" },
+      "description": "Low-inventory operational alert records."
+    },
+    "/cmsLanding/{docId}": {
+      "schema": { "$ref": "#/entities/CmsLandingConfig" },
+      "description": "CMS-managed landing page headlines, branding, social links, and pricing."
+    },
+    "/navMenuItems/{itemId}": {
+      "schema": { "$ref": "#/entities/NavMenuItem" },
+      "description": "Header navbar menu items and their editable page content."
+    },
+    "/blogPosts/{postId}": {
+      "schema": { "$ref": "#/entities/BlogPost" },
+      "description": "CMS-managed founder guides and regulatory updates."
+    },
+    "/reportExports/{exportId}": {
+      "schema": { "$ref": "#/entities/ReportExport" },
+      "description": "Management report generation history and automated export schedules."
+    }
+  }
+}

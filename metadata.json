@@ -1,0 +1,6 @@
+{
+  "name": "Meridian Setup — Dubai Company Formation",
+  "description": "Launch your Dubai Free Zone or Mainland company in 48 hours with transparent AED pricing, instant cost calculation, live application tracking, and an executive operations dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

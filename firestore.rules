@@ -1,0 +1,438 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // Global Helpers
+    // -------------------------------------------------------------------------
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isBootstrappedAdmin() {
+      return isVerifiedUser()
+        && request.auth.token.email != null
+        && request.auth.token.email == 'shafiq.rehman31@gmail.com';
+    }
+
+    function isAdmin() {
+      return isBootstrappedAdmin() || (
+        isVerifiedUser()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // -------------------------------------------------------------------------
+    // Entity Validation Helpers
+    // -------------------------------------------------------------------------
+    function isValidAdminUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'role', 'createdAt'])
+        && data.keys().hasOnly(['uid', 'email', 'displayName', 'role', 'createdAt'])
+        && isValidId(data.uid)
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 200
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120
+        && data.role in ['super_admin', 'operations']
+        && data.createdAt is timestamp;
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll([
+          'trackingCode', 'fullName', 'countryCode', 'whatsappNumber',
+          'jurisdiction', 'authority', 'businessActivity', 'visaCount',
+          'packageId', 'packageName', 'estimatedTotalAed', 'status',
+          'currentStep', 'pipedriveSyncStatus', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'trackingCode', 'fullName', 'countryCode', 'whatsappNumber', 'email',
+          'jurisdiction', 'authority', 'businessActivity', 'visaCount',
+          'packageId', 'packageName', 'estimatedTotalAed', 'status',
+          'currentStep', 'source', 'pipedriveSyncStatus', 'pipedriveDealId',
+          'pipedrivePersonId', 'pipedriveError', 'notes', 'createdAt', 'updatedAt'
+        ])
+        && data.trackingCode is string
+        && data.trackingCode.size() >= 6 && data.trackingCode.size() <= 32
+        && data.trackingCode.matches('^[A-Z0-9\\-]+$')
+        && data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 120
+        && data.countryCode is string && data.countryCode.size() >= 2 && data.countryCode.size() <= 8
+        && data.whatsappNumber is string && data.whatsappNumber.size() >= 6 && data.whatsappNumber.size() <= 32
+        && (!('email' in data) || (data.email is string && data.email.size() <= 200))
+        && data.jurisdiction in ['Free Zone', 'Mainland']
+        && data.authority is string && data.authority.size() >= 2 && data.authority.size() <= 80
+        && data.businessActivity is string && data.businessActivity.size() >= 2 && data.businessActivity.size() <= 120
+        && data.visaCount is number && data.visaCount >= 0 && data.visaCount <= 50
+        && data.packageId is string && data.packageId.size() >= 2 && data.packageId.size() <= 64
+        && data.packageName is string && data.packageName.size() >= 2 && data.packageName.size() <= 100
+        && data.estimatedTotalAed is number && data.estimatedTotalAed >= 0 && data.estimatedTotalAed <= 1000000
+        && data.status in [
+          'New Lead', 'KYC Submitted', 'Trade Name Approved',
+          'E-License Issued', 'Emirates ID & Bank', 'Completed'
+        ]
+        && data.currentStep is number && data.currentStep >= 1 && data.currentStep <= 6
+        && (!('source' in data) || (data.source is string && data.source.size() <= 64))
+        && data.pipedriveSyncStatus in ['pending', 'synced', 'pending_config', 'failed']
+        && (!('pipedriveDealId' in data) || (data.pipedriveDealId is string && data.pipedriveDealId.size() <= 64))
+        && (!('pipedrivePersonId' in data) || (data.pipedrivePersonId is string && data.pipedrivePersonId.size() <= 64))
+        && (!('pipedriveError' in data) || (data.pipedriveError is string && data.pipedriveError.size() <= 300))
+        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 1000))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidOrderStatus(data) {
+      return data.keys().hasAll([
+          'trackingCode', 'jurisdiction', 'authority', 'packageName',
+          'visaCount', 'estimatedTotalAed', 'status', 'currentStep',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'trackingCode', 'jurisdiction', 'authority', 'packageName',
+          'visaCount', 'estimatedTotalAed', 'status', 'currentStep',
+          'createdAt', 'updatedAt'
+        ])
+        && data.trackingCode is string
+        && data.trackingCode.size() >= 6 && data.trackingCode.size() <= 32
+        && data.trackingCode.matches('^[A-Z0-9\\-]+$')
+        && data.jurisdiction in ['Free Zone', 'Mainland']
+        && data.authority is string && data.authority.size() >= 2 && data.authority.size() <= 80
+        && data.packageName is string && data.packageName.size() >= 2 && data.packageName.size() <= 100
+        && data.visaCount is number && data.visaCount >= 0 && data.visaCount <= 50
+        && data.estimatedTotalAed is number && data.estimatedTotalAed >= 0 && data.estimatedTotalAed <= 1000000
+        && data.status in [
+          'New Lead', 'KYC Submitted', 'Trade Name Approved',
+          'E-License Issued', 'Emirates ID & Bank', 'Completed'
+        ]
+        && data.currentStep is number && data.currentStep >= 1 && data.currentStep <= 6
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidInventory(data) {
+      return data.keys().hasAll([
+          'id', 'name', 'category', 'stockLevel', 'maxCapacity',
+          'lowThreshold', 'alertEnabled', 'unitCostAed', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'name', 'category', 'packageKey', 'stockLevel', 'maxCapacity',
+          'lowThreshold', 'alertEnabled', 'alertChannel', 'unitCostAed', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 120
+        && data.category in ['License Quota', 'Visa Allocation', 'Banking Slot', 'VIP Medical']
+        && (!('packageKey' in data) || (data.packageKey is string && data.packageKey.size() <= 64))
+        && data.stockLevel is number && data.stockLevel >= 0 && data.stockLevel <= 100000
+        && data.maxCapacity is number && data.maxCapacity >= 1 && data.maxCapacity <= 100000
+        && data.lowThreshold is number && data.lowThreshold >= 0 && data.lowThreshold <= 100000
+        && data.alertEnabled is bool
+        && (!('alertChannel' in data) || (data.alertChannel in ['Dashboard Banner', 'Ops Slack Channel', 'Daily Digest']))
+        && data.unitCostAed is number && data.unitCostAed >= 0 && data.unitCostAed <= 1000000
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidInventoryAlert(data) {
+      return data.keys().hasAll([
+          'inventoryId', 'itemName', 'stockLevel', 'threshold',
+          'severity', 'acknowledged', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'inventoryId', 'itemName', 'stockLevel', 'threshold',
+          'severity', 'acknowledged', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.inventoryId)
+        && data.itemName is string && data.itemName.size() >= 2 && data.itemName.size() <= 120
+        && data.stockLevel is number && data.stockLevel >= 0
+        && data.threshold is number && data.threshold >= 0
+        && data.severity in ['warning', 'critical']
+        && data.acknowledged is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidCmsLanding(data) {
+      return data.keys().hasAll([
+          'heroHeadline', 'heroSubheadline', 'whatsappNumber', 'phoneDisplay',
+          'googleRatingScore', 'googleReviewCount', 'zeroVisaPriceAed',
+          'oneVisaPriceAed', 'mainlandPriceAed', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'heroHeadline', 'heroSubheadline', 'whatsappNumber', 'phoneDisplay',
+          'googleRatingScore', 'googleReviewCount', 'zeroVisaPriceAed',
+          'oneVisaPriceAed', 'mainlandPriceAed', 'promoNotice',
+          'logoDataUrl', 'footerLogoDataUrl', 'faviconDataUrl', 'siteName',
+          'socialLinkedin', 'socialInstagram', 'socialX', 'socialYoutube', 'socialFacebook',
+          'updatedAt'
+        ])
+        && data.heroHeadline is string && data.heroHeadline.size() >= 5 && data.heroHeadline.size() <= 160
+        && data.heroSubheadline is string && data.heroSubheadline.size() >= 5 && data.heroSubheadline.size() <= 320
+        && data.whatsappNumber is string && data.whatsappNumber.size() >= 6 && data.whatsappNumber.size() <= 32
+        && data.phoneDisplay is string && data.phoneDisplay.size() >= 6 && data.phoneDisplay.size() <= 32
+        && data.googleRatingScore is string && data.googleRatingScore.size() >= 1 && data.googleRatingScore.size() <= 16
+        && data.googleReviewCount is string && data.googleReviewCount.size() >= 1 && data.googleReviewCount.size() <= 32
+        && data.zeroVisaPriceAed is number && data.zeroVisaPriceAed >= 1000 && data.zeroVisaPriceAed <= 500000
+        && data.oneVisaPriceAed is number && data.oneVisaPriceAed >= 1000 && data.oneVisaPriceAed <= 500000
+        && data.mainlandPriceAed is number && data.mainlandPriceAed >= 1000 && data.mainlandPriceAed <= 500000
+        && (!('promoNotice' in data) || (data.promoNotice is string && data.promoNotice.size() <= 180))
+        && (!('siteName' in data) || (data.siteName is string && data.siteName.size() >= 2 && data.siteName.size() <= 100))
+        && (!('logoDataUrl' in data) || (data.logoDataUrl is string && data.logoDataUrl.size() <= 150000))
+        && (!('footerLogoDataUrl' in data) || (data.footerLogoDataUrl is string && data.footerLogoDataUrl.size() <= 150000))
+        && (!('faviconDataUrl' in data) || (data.faviconDataUrl is string && data.faviconDataUrl.size() <= 80000))
+        && (!('socialLinkedin' in data) || (data.socialLinkedin is string && data.socialLinkedin.size() <= 300))
+        && (!('socialInstagram' in data) || (data.socialInstagram is string && data.socialInstagram.size() <= 300))
+        && (!('socialX' in data) || (data.socialX is string && data.socialX.size() <= 300))
+        && (!('socialYoutube' in data) || (data.socialYoutube is string && data.socialYoutube.size() <= 300))
+        && (!('socialFacebook' in data) || (data.socialFacebook is string && data.socialFacebook.size() <= 300))
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidNavMenuItem(data) {
+      return data.keys().hasAll([
+          'id', 'label', 'slug', 'order', 'visible', 'isBuiltIn', 'pageTitle', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'label', 'slug', 'order', 'visible', 'isBuiltIn',
+          'pageTitle', 'pageSubtitle', 'pageBody', 'ctaLabel', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.label is string && data.label.size() >= 1 && data.label.size() <= 40
+        && data.slug is string && data.slug.size() >= 1 && data.slug.size() <= 64 && data.slug.matches('^[a-z0-9\\-]+$')
+        && data.order is number && data.order >= 0 && data.order <= 100
+        && data.visible is bool
+        && data.isBuiltIn is bool
+        && data.pageTitle is string && data.pageTitle.size() >= 2 && data.pageTitle.size() <= 160
+        && (!('pageSubtitle' in data) || (data.pageSubtitle is string && data.pageSubtitle.size() <= 400))
+        && (!('pageBody' in data) || (data.pageBody is string && data.pageBody.size() <= 12000))
+        && (!('ctaLabel' in data) || (data.ctaLabel is string && data.ctaLabel.size() <= 60))
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidBlogPost(data) {
+      return data.keys().hasAll([
+          'title', 'slug', 'category', 'excerpt', 'content',
+          'readTimeMinutes', 'authorName', 'status', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'title', 'slug', 'category', 'excerpt', 'content',
+          'readTimeMinutes', 'authorName', 'status', 'createdAt', 'updatedAt'
+        ])
+        && data.title is string && data.title.size() >= 3 && data.title.size() <= 180
+        && data.slug is string && data.slug.size() >= 3 && data.slug.size() <= 180 && data.slug.matches('^[a-z0-9\\-]+$')
+        && data.category is string && data.category.size() >= 2 && data.category.size() <= 60
+        && data.excerpt is string && data.excerpt.size() >= 10 && data.excerpt.size() <= 400
+        && data.content is string && data.content.size() >= 20 && data.content.size() <= 15000
+        && data.readTimeMinutes is number && data.readTimeMinutes >= 1 && data.readTimeMinutes <= 60
+        && data.authorName is string && data.authorName.size() >= 2 && data.authorName.size() <= 80
+        && data.status in ['draft', 'published']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidReportExport(data) {
+      return data.keys().hasAll([
+          'reportName', 'reportType', 'cadence', 'recordCount',
+          'totalValueAed', 'generatedBy', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'reportName', 'reportType', 'cadence', 'recordCount',
+          'totalValueAed', 'generatedBy', 'createdAt'
+        ])
+        && data.reportName is string && data.reportName.size() >= 2 && data.reportName.size() <= 140
+        && data.reportType in ['orders_csv', 'analytics_summary', 'inventory_audit', 'pipedrive_sync_log']
+        && data.cadence in ['manual', 'daily', 'weekly']
+        && data.recordCount is number && data.recordCount >= 0 && data.recordCount <= 1000000
+        && data.totalValueAed is number && data.totalValueAed >= 0
+        && data.generatedBy is string && data.generatedBy.size() >= 2 && data.generatedBy.size() <= 120
+        && data.createdAt is timestamp;
+    }
+
+    // -------------------------------------------------------------------------
+    // Collection Match Blocks
+    // -------------------------------------------------------------------------
+    match /admins/{userId} {
+      allow get: if isValidId(userId) && (isAdmin() || (isVerifiedUser() && request.auth.uid == userId));
+      allow list: if isAdmin();
+      allow create: if isAdmin() && isValidId(userId) && isValidAdminUser(incoming()) && incoming().uid == userId && incoming().createdAt == request.time;
+      allow update: if isAdmin() && isValidId(userId) && isValidAdminUser(incoming()) && incoming().uid == existing().uid && incoming().createdAt == existing().createdAt;
+      allow delete: if isAdmin() && isValidId(userId);
+    }
+
+    match /orders/{orderId} {
+      allow get: if isValidId(orderId) && isAdmin();
+      allow list: if isAdmin();
+      allow create: if isValidId(orderId)
+        && isValidOrder(incoming())
+        && incoming().status == 'New Lead'
+        && incoming().currentStep == 1
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && existsAfter(/databases/$(database)/documents/orderStatus/$(incoming().trackingCode));
+      allow update: if isAdmin()
+        && isValidId(orderId)
+        && isValidOrder(incoming())
+        && incoming().trackingCode == existing().trackingCode
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'status', 'currentStep', 'pipedriveSyncStatus', 'pipedriveDealId',
+          'pipedrivePersonId', 'pipedriveError', 'notes', 'updatedAt',
+          'estimatedTotalAed', 'packageName', 'visaCount'
+        ]);
+      allow delete: if isAdmin() && isValidId(orderId);
+    }
+
+    match /orderStatus/{trackingCode} {
+      allow get: if isValidId(trackingCode);
+      allow list: if isAdmin();
+      allow create: if isValidId(trackingCode)
+        && isValidOrderStatus(incoming())
+        && incoming().trackingCode == trackingCode
+        && incoming().status == 'New Lead'
+        && incoming().currentStep == 1
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(trackingCode)
+        && isValidOrderStatus(incoming())
+        && incoming().trackingCode == existing().trackingCode
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'status', 'currentStep', 'estimatedTotalAed', 'packageName', 'visaCount', 'updatedAt'
+        ]);
+      allow delete: if isAdmin() && isValidId(trackingCode);
+    }
+
+    match /inventory/{itemId} {
+      allow get: if isValidId(itemId);
+      allow list: if resource.data.maxCapacity >= 1;
+      allow create: if isAdmin()
+        && isValidId(itemId)
+        && isValidInventory(incoming())
+        && incoming().id == itemId
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(itemId)
+        && isValidInventory(incoming())
+        && incoming().id == existing().id
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'name', 'category', 'packageKey', 'stockLevel', 'maxCapacity',
+          'lowThreshold', 'alertEnabled', 'alertChannel', 'unitCostAed', 'updatedAt'
+        ]);
+      allow delete: if isAdmin() && isValidId(itemId);
+    }
+
+    match /alerts/{alertId} {
+      allow get: if isValidId(alertId) && isAdmin();
+      allow list: if isAdmin();
+      allow create: if isAdmin()
+        && isValidId(alertId)
+        && isValidInventoryAlert(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(alertId)
+        && isValidInventoryAlert(incoming())
+        && incoming().inventoryId == existing().inventoryId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'stockLevel', 'threshold', 'severity', 'acknowledged', 'updatedAt'
+        ]);
+      allow delete: if isAdmin() && isValidId(alertId);
+    }
+
+    match /cmsLanding/{docId} {
+      allow get: if isValidId(docId);
+      allow list: if isAdmin();
+      allow create: if isAdmin()
+        && isValidId(docId)
+        && isValidCmsLanding(incoming())
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(docId)
+        && isValidCmsLanding(incoming())
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'heroHeadline', 'heroSubheadline', 'whatsappNumber', 'phoneDisplay',
+          'googleRatingScore', 'googleReviewCount', 'zeroVisaPriceAed',
+          'oneVisaPriceAed', 'mainlandPriceAed', 'promoNotice',
+          'logoDataUrl', 'footerLogoDataUrl', 'faviconDataUrl', 'siteName',
+          'socialLinkedin', 'socialInstagram', 'socialX', 'socialYoutube', 'socialFacebook',
+          'updatedAt'
+        ]);
+      allow delete: if isAdmin() && isValidId(docId);
+    }
+
+    match /navMenuItems/{itemId} {
+      allow get: if isValidId(itemId);
+      allow list: if resource.data.order >= 0;
+      allow create: if isAdmin()
+        && isValidId(itemId)
+        && isValidNavMenuItem(incoming())
+        && incoming().id == itemId
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(itemId)
+        && isValidNavMenuItem(incoming())
+        && incoming().id == existing().id
+        && incoming().isBuiltIn == existing().isBuiltIn
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'label', 'slug', 'order', 'visible',
+          'pageTitle', 'pageSubtitle', 'pageBody', 'ctaLabel', 'updatedAt'
+        ]);
+      allow delete: if isAdmin() && isValidId(itemId);
+    }
+
+    match /blogPosts/{postId} {
+      allow get: if isValidId(postId) && (resource.data.status == 'published' || isAdmin());
+      allow list: if resource.data.status == 'published' || isAdmin();
+      allow create: if isAdmin()
+        && isValidId(postId)
+        && isValidBlogPost(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(postId)
+        && isValidBlogPost(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'slug', 'category', 'excerpt', 'content',
+          'readTimeMinutes', 'authorName', 'status', 'updatedAt'
+        ]);
+      allow delete: if isAdmin() && isValidId(postId);
+    }
+
+    match /reportExports/{exportId} {
+      allow get: if isValidId(exportId) && isAdmin();
+      allow list: if isAdmin();
+      allow create: if isAdmin()
+        && isValidId(exportId)
+        && isValidReportExport(incoming())
+        && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isAdmin() && isValidId(exportId);
+    }
+  }
+}
