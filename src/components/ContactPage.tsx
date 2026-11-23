@@ -26,10 +26,10 @@ interface ContactPageProps {
 }
 
 const SERVICE_OPTIONS = [
-  'Zero-Visa All UAE Free Zone License (AED 5,000)',
-  '1-Visa All-Inclusive Free Zone Setup (AED 10,900)',
-  'Dubai Mainland LLC Formation (AED 12,900)',
-  'Corporate Bank Account & Compliance Pre-Vetting',
+  '0-Visa UAE Free Zone License (AED 5,999 — Gov AED 5,200 + Service AED 799)',
+  '1-Visa Free Zone All-Inclusive (AED 10,500 — Gov AED 8,750 + Service AED 1,750)',
+  'Dubai Mainland Instant Setup DET (AED 10,999 — Gov AED 9,199 + Service AED 1,800)',
+  'Corporate Bank KYC Pre-Vetting & Onboarding Coordination',
   'Flexi Desk / Office & Multi-Visa Packages',
 ];
 

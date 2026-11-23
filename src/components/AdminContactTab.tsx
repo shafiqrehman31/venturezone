@@ -38,11 +38,11 @@ function buildEmailBodyText(inq: ContactInquiry): string {
     ``,
     `Thank you for contacting venturezoneuae.com regarding ${inq.serviceInterest} (${inq.jurisdiction}).`,
     ``,
-    `Attached to this email is our Company Profile & Lowest-Price Setup Proposal (venturezoneuae-company-profile.pdf), covering all UAE Free Zone authorities and Dubai Mainland (DET):`,
+    `Attached to this email is our Company Profile & Transparent Pricing Proposal (venturezoneuae-company-profile.pdf), covering all UAE Free Zone authorities and Dubai Mainland (DET) with itemized Authority Fees vs. Venture Zone Service Fees:`,
     ``,
-    `- Zero-Visa All UAE Free Zone License: Starting from AED 5,000`,
-    `- 1-Visa All-Inclusive Free Zone Package: AED 10,900 (Includes 2-Yr Investor Visa, Emirates ID & Banking Desk)`,
-    `- Dubai Mainland LLC (DET): AED 12,900 (Full UAE Local Market & Tenders, 100% Ownership)`,
+    `- 0-Visa UAE Free Zone License: AED 5,999 (Authority/Gov AED 5,200 + Venture Zone Service AED 799)`,
+    `- 1-Visa Free Zone (All-Inclusive): AED 10,500 (Authority/Gov AED 8,750 + Venture Zone Service AED 1,750)`,
+    `- Dubai Mainland Instant Setup (DET): AED 10,999 (Authority/Gov AED 9,199 + Venture Zone Service AED 1,800)`,
     ``,
     `Your Submitted Request Summary:`,
     `- Name: ${inq.fullName}`,
@@ -462,16 +462,31 @@ export function AdminContactTab({ inquiries }: AdminContactTabProps) {
 
                   <div className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-[#FAFAFB]">
                     <div className="flex items-center justify-between px-4 py-2.5">
-                      <span>Zero-Visa All UAE Free Zone License</span>
-                      <span className="font-mono font-bold text-[#ff0031]">AED 5,000</span>
+                      <div>
+                        <div>0-Visa UAE Free Zone License</div>
+                        <div className="text-[10px] text-slate-500">
+                          Gov ~AED 5,200 + Service AED 799
+                        </div>
+                      </div>
+                      <span className="font-mono font-bold text-[#ff0031]">AED 5,999</span>
                     </div>
                     <div className="flex items-center justify-between px-4 py-2.5">
-                      <span>1-Visa All-Inclusive Free Zone Package</span>
-                      <span className="font-mono font-bold text-[#ff0031]">AED 10,900</span>
+                      <div>
+                        <div>1-Visa Free Zone (All-Inclusive)</div>
+                        <div className="text-[10px] text-slate-500">
+                          Gov ~AED 8,750 + Service AED 1,750
+                        </div>
+                      </div>
+                      <span className="font-mono font-bold text-[#ff0031]">AED 10,500</span>
                     </div>
                     <div className="flex items-center justify-between px-4 py-2.5">
-                      <span>Dubai Mainland LLC (DET)</span>
-                      <span className="font-mono font-bold text-[#ff0031]">AED 12,900</span>
+                      <div>
+                        <div>Dubai Mainland Instant Setup (DET)</div>
+                        <div className="text-[10px] text-slate-500">
+                          Gov ~AED 9,199 + Service AED 1,800
+                        </div>
+                      </div>
+                      <span className="font-mono font-bold text-[#ff0031]">AED 10,999</span>
                     </div>
                   </div>
 

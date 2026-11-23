@@ -26,7 +26,9 @@ import {
   DEFAULT_INVENTORY_SEED,
   DEFAULT_NAV_MENU_ITEMS,
   FAQ_ITEMS,
+  OPTIONAL_ADDONS,
   ORDER_STEPS,
+  PRICING_FEE_SPLIT_TABLE,
 } from '../data/defaults';
 import { db } from '../lib/firebase';
 import type {
@@ -121,13 +123,14 @@ export function LandingPage() {
         if (snap.exists()) {
           const data = snap.data() as CmsLandingConfig;
           const isLegacySeed = !data.siteName || data.siteName === 'Meridian Setup';
-          const legacyZero = [12500, 11500].includes(data.zeroVisaPriceAed);
-          const legacyOne = [18900, 17900].includes(data.oneVisaPriceAed);
-          const legacyMainland = [24500, 23500].includes(data.mainlandPriceAed);
+          const legacyZero = [12500, 11500, 5000].includes(data.zeroVisaPriceAed);
+          const legacyOne = [18900, 17900, 10900].includes(data.oneVisaPriceAed);
+          const legacyMainland = [24500, 23500, 12900].includes(data.mainlandPriceAed);
           const legacyPromo =
             !data.promoNotice ||
             data.promoNotice.startsWith('Q4 Allocation Open') ||
-            data.promoNotice.startsWith('Special Offer · AED 1,000 Off');
+            data.promoNotice.startsWith('Special Offer · AED 1,000 Off') ||
+            data.promoNotice.startsWith('Lowest Price Guarantee');
 
           setCms({
             heroHeadline: data.heroHeadline || DEFAULT_CMS_LANDING.heroHeadline,
@@ -307,9 +310,11 @@ export function LandingPage() {
   const pricingPackages = [
     {
       key: 'zero-visa',
-      title: 'Zero-Visa License',
-      subtitle: 'For remote consultants & e-commerce founders',
+      title: '0-Visa Free Zone License',
+      subtitle: 'For remote consultants, SaaS & e-commerce founders',
       price: cms.zeroVisaPriceAed,
+      authorityFee: Math.max(1000, cms.zeroVisaPriceAed - 799),
+      serviceFee: 799,
       jurisdiction: 'Free Zone' as JurisdictionType,
       visaCount: 0,
       popular: false,
@@ -317,40 +322,44 @@ export function LandingPage() {
         '100% Foreign Ownership (All UAE Free Zones)',
         'Digital Trade License in 48 Hours',
         '3 Business Activities Included',
-        'Corporate Bank Account Guidance',
-        '0% Personal Income Tax',
+        'Zero Office Lease Required (Flexi-Desk)',
+        'Corporate Bank Readiness Guidance',
       ],
     },
     {
       key: 'one-visa',
-      title: '1-Visa All-Inclusive',
-      subtitle: 'For solo founders relocating or opening UAE bank accounts',
+      title: '1-Visa Free Zone (All-Inclusive)',
+      subtitle: 'For founders relocating or applying for UAE business banking',
       price: cms.oneVisaPriceAed,
+      authorityFee: Math.max(4150, cms.oneVisaPriceAed - 1750),
+      serviceFee: 1750,
       jurisdiction: 'Free Zone' as JurisdictionType,
       visaCount: 1,
       popular: true,
       features: [
-        'Everything in Zero-Visa License',
+        'Everything in 0-Visa Free Zone License',
         '2-Year UAE Investor Residence Visa',
-        'Emirates ID & VIP Medical Typing',
-        'Establishment Card & E-Channel',
-        'Wio / Mashreq Bank Pre-Vetting',
+        'Establishment Card & E-Channel Included',
+        'Emirates ID & Medical Typing Coordination',
+        'Wio / Mashreq Bank KYC Pre-Vetting',
       ],
     },
     {
       key: 'mainland-llc',
-      title: 'Mainland LLC',
+      title: 'Dubai Mainland Instant Setup',
       subtitle: 'For local UAE trading, retail & government contracts',
       price: cms.mainlandPriceAed,
+      authorityFee: Math.max(4000, cms.mainlandPriceAed - 1800),
+      serviceFee: 1800,
       jurisdiction: 'Mainland' as JurisdictionType,
       visaCount: 1,
       popular: false,
       features: [
-        'Dubai Economy & Tourism (DET) LLC',
-        'Trade Anywhere Across UAE Mainland',
-        '1 Investor Visa & Establishment Card',
-        'Flexi-Desk / Virtual Ejari Options',
-        'Priority Corporate Bank Introduction',
+        'Dubai Economy & Tourism (DET) Instant LLC',
+        'Trade Anywhere Across UAE Local Market',
+        '1 Investor Visa Quota & Establishment Card',
+        'Flexi-Desk / Virtual Ejari Options Available',
+        'Dedicated PRO & Bank Onboarding Support',
       ],
     },
   ];
@@ -592,7 +601,7 @@ export function LandingPage() {
           {/* Section 1: Trust & Authority Strip */}
           <PartnerLogos />
 
-          {/* Section 2: Transparent Spatial Pricing Cards */}
+          {/* Section 2: Transparent Spatial Pricing Cards & Gov vs Service Breakdown Table */}
           <section id="pricing" className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
             <div className="mx-auto max-w-2xl text-center">
               <h2
@@ -602,7 +611,11 @@ export function LandingPage() {
                 Transparent UAE Formation Packages
               </h2>
               <p className="mt-3 text-base text-slate-600">
-                All government fees, establishment cards, and compliance checks itemized in AED — lowest market pricing starting from AED 5,000.
+                Direct UAE Authority / Government fees separated from Venture Zone&apos;s fixed service fee — starting from{' '}
+                <span className="font-mono font-bold tabular-nums text-[#111827]">
+                  AED {cms.zeroVisaPriceAed.toLocaleString()}
+                </span>
+                .
               </p>
               <div className="mt-4">
                 <button
@@ -655,11 +668,17 @@ export function LandingPage() {
                       </h3>
                       <p className="mt-1 text-sm text-slate-600">{pkg.subtitle}</p>
 
-                      <div className="mt-5 flex items-baseline gap-2 border-b border-slate-200/80 pb-5">
-                        <span className="font-mono text-3xl font-bold tabular-nums text-[#111827]">
-                          AED {pkg.price.toLocaleString()}
-                        </span>
-                        <span className="text-xs text-slate-500">all-inclusive</span>
+                      <div className="mt-5 border-b border-slate-200/80 pb-5">
+                        <div className="flex items-baseline gap-2">
+                          <span className="font-mono text-3xl font-bold tabular-nums text-[#111827]">
+                            AED {pkg.price.toLocaleString()}
+                          </span>
+                          <span className="text-xs text-slate-500">total setup</span>
+                        </div>
+                        <p className="mt-1.5 font-mono text-xs tabular-nums text-slate-600">
+                          Gov/Authority ~AED {pkg.authorityFee.toLocaleString()} + Service Fee AED{' '}
+                          {pkg.serviceFee.toLocaleString()}
+                        </p>
                       </div>
 
                       {slotsLeft !== null && (
@@ -693,6 +712,114 @@ export function LandingPage() {
                   </div>
                 );
               })}
+            </div>
+
+            {/* Authority Fee vs. Venture Zone Service Fee Comparison Table */}
+            <div className="spatial-glass mt-10 overflow-hidden rounded-2xl p-6 sm:p-8">
+              <div className="flex flex-col justify-between gap-3 border-b border-slate-200/80 pb-5 md:flex-row md:items-end">
+                <div>
+                  <h3 className="font-display text-xl font-bold text-[#111827]">
+                    Authority Fee vs. Venture Zone Service Fee Breakdown
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Compare pass-through UAE government rates, our fixed service fee, and realistic Year 2 renewal estimates.
+                  </p>
+                </div>
+                <span className="font-mono text-xs font-semibold text-[#008A72]">
+                  All figures in AED · No hidden markups
+                </span>
+              </div>
+
+              <div className="mt-5 overflow-x-auto">
+                <table className="w-full min-w-[680px] border-collapse text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-xs font-semibold text-slate-500">
+                      <th className="py-3 pr-4">Package &amp; Ideal Use Case</th>
+                      <th className="px-4 py-3 text-right">Authority / Gov Fee</th>
+                      <th className="px-4 py-3 text-right">Venture Zone Fee</th>
+                      <th className="px-4 py-3 text-right">Total Setup</th>
+                      <th className="pl-4 py-3">Year 2 Renewal Estimate</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200/70">
+                    {PRICING_FEE_SPLIT_TABLE.map((row) => {
+                      const dynamicTotal =
+                        row.id === 'zero-visa'
+                          ? cms.zeroVisaPriceAed
+                          : row.id === 'one-visa'
+                            ? cms.oneVisaPriceAed
+                            : cms.mainlandPriceAed;
+                      const dynamicAuth = Math.max(1000, dynamicTotal - row.serviceFeeAed);
+                      return (
+                        <tr key={row.id} className="hover:bg-white/60">
+                          <td className="py-4 pr-4 align-top">
+                            <div className="font-display font-bold text-[#111827]">
+                              {row.packageName}
+                            </div>
+                            <div className="mt-0.5 text-xs text-slate-600">{row.idealUseCase}</div>
+                            <div className="mt-1 text-xs font-medium text-[#008A72]">
+                              {row.highlights}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-right align-top font-mono font-semibold tabular-nums text-slate-700">
+                            AED {dynamicAuth.toLocaleString()}
+                          </td>
+                          <td className="px-4 py-4 text-right align-top font-mono font-semibold tabular-nums text-[#008A72]">
+                            AED {row.serviceFeeAed.toLocaleString()}
+                          </td>
+                          <td className="px-4 py-4 text-right align-top font-mono text-base font-bold tabular-nums text-[#ff0031]">
+                            AED {dynamicTotal.toLocaleString()}
+                          </td>
+                          <td className="pl-4 py-4 align-top font-mono text-xs font-semibold tabular-nums text-slate-700">
+                            {row.year2RenewalRange}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Optional Add-Ons & Year 2 Expectation */}
+              <div className="mt-7 border-t border-slate-200/80 pt-6">
+                <h4 className="font-display text-sm font-bold text-[#111827]">
+                  Optional Add-Ons &amp; Statutory Registrations
+                </h4>
+                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {OPTIONAL_ADDONS.map((addon) => (
+                    <div
+                      key={addon.name}
+                      className="rounded-xl border border-slate-200/80 bg-white/80 p-3.5"
+                    >
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="text-xs font-bold text-[#111827]">{addon.name}</span>
+                      </div>
+                      <div className="mt-1 font-mono text-xs font-bold tabular-nums text-[#ff0031]">
+                        {addon.cost}
+                      </div>
+                      <p className="mt-1 text-xs leading-relaxed text-slate-600">{addon.note}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Realistic Disclaimers */}
+              <div className="mt-6 rounded-xl border border-slate-200 bg-[#FAFAFB] p-4 text-xs leading-relaxed text-slate-600">
+                <p>
+                  <strong className="text-[#111827]">Banking &amp; Compliance Notice:</strong> UAE
+                  corporate bank account opening and approval remain at the sole discretion of the
+                  issuing bank (e.g., Wio Business, Mashreq NeoBiz, RAKBANK) subject to independent
+                  KYC/AML screening. Venture Zone provides document pre-vetting, compliance file
+                  structuring, and onboarding coordination—not guaranteed bank approval.
+                </p>
+                <p className="mt-2">
+                  <strong className="text-[#111827]">Authority Fee &amp; Renewal Notice:</strong>{' '}
+                  Listed government fees reflect current standard schedules across partner UAE Free
+                  Zones and DET Mainland and remain subject to official authority updates, third-party
+                  regulatory approvals, and 5% UAE VAT where applicable. Year 2 renewal fees vary by
+                  selected Free Zone, workspace type, and active visa count.
+                </p>
+              </div>
             </div>
           </section>
 
@@ -781,7 +908,7 @@ export function LandingPage() {
             </div>
           </section>
 
-          {/* Section 4: Simple 3-Step Timeline + Live Order Progress Tracker */}
+          {/* Section 4: Our Simple & Easy Process (4 Steps) + Live Order Progress Tracker */}
           <section id="tracker" className="border-y border-slate-200/80 bg-white/60 py-14 backdrop-blur-md lg:py-16">
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="mx-auto max-w-2xl text-center">
@@ -789,30 +916,35 @@ export function LandingPage() {
                   className="font-display text-3xl font-extrabold tracking-tight text-[#111827]"
                   style={{ textWrap: 'balance' }}
                 >
-                  From Passport Scan to Active Bank Account
+                  Our Simple &amp; Easy Process
                 </h2>
                 <p className="mt-3 text-base text-slate-600">
-                  Three structured milestones managed by your dedicated UAE PRO desk.
+                  Four straightforward steps managed by your dedicated UAE PRO &amp; compliance desk.
                 </p>
               </div>
 
-              {/* Horizontal 3-Step Timeline */}
-              <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
+              {/* Horizontal 4-Step Process */}
+              <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
                 {[
                   {
                     num: '01',
-                    title: '1. Submit Passport',
-                    desc: 'Upload your passport copy and select up to 3 business activities online in 5 minutes.',
+                    title: '01. Consultation & Activity Fit',
+                    desc: 'Select the right Free Zone or Dubai Mainland structure and licensed activities for your business.',
                   },
                   {
                     num: '02',
-                    title: '2. Get E-License in 48h',
-                    desc: 'We secure your trade name reservation, MOA e-signing, and digital UAE license.',
+                    title: '02. KYC & Authority Filing',
+                    desc: 'Submit your passport copy online while we reserve your trade name and complete MOA filings.',
                   },
                   {
                     num: '03',
-                    title: '3. Receive Emirates ID & Bank Account',
-                    desc: 'Complete 3-day Dubai biometrics and activate your Wio or Mashreq corporate account.',
+                    title: '03. 48-Hour E-License Issue',
+                    desc: 'Receive your digital Trade License and Certificate of Incorporation remotely without flying in.',
+                  },
+                  {
+                    num: '04',
+                    title: '04. Visa, EID & Bank Support',
+                    desc: 'Complete 3-day Dubai biometrics and submit a pre-vetted KYC pack for UAE business banking.',
                   },
                 ].map((stepItem, idx) => (
                   <div
@@ -821,7 +953,7 @@ export function LandingPage() {
                   >
                     <div
                       className={`font-mono text-sm font-bold tabular-nums ${
-                        idx === 1 ? 'text-[#008A72]' : 'text-[#ff0031]'
+                        idx % 2 === 1 ? 'text-[#008A72]' : 'text-[#ff0031]'
                       }`}
                     >
                       Step {stepItem.num}

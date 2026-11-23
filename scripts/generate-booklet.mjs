@@ -177,7 +177,7 @@ doc
   .fontSize(11.5)
   .fillColor(COLORS.slate)
   .text(
-    'All UAE Free Zone Authorities & Dubai Mainland Formation Packages\nRevised 2026 Lowest Market Pricing — Starting From AED 5,000',
+    'All UAE Free Zone Authorities & Dubai Mainland Formation Packages\nTransparent Gov + Service Fee Pricing — Starting From AED 5,999',
     48,
     238,
     { width: CONTENT_W, lineGap: 4 }
@@ -238,12 +238,12 @@ drawLogoBadge(PAGE_W - 186, 66);
 
 const tocItems = [
   ['03', 'About venturezoneuae.com & UAE Benefits', 'Why global founders incorporate across all UAE Free Zones'],
-  ['04', 'Core Formation Packages (From AED 5,000)', 'Zero-Visa, 1-Visa All-Inclusive & Dubai Mainland LLC'],
+  ['04', 'Core Formation Packages (From AED 5,999)', '0-Visa (5,999), 1-Visa (10,500) & Mainland (10,999)'],
   ['05', 'Free Zone Ecosystems (Crypto, FinX & ESG)', 'Web3, fintech, trade & sustainability hubs across UAE'],
   ['06', 'Business Centres & Workspace Rates', 'Flexi Desks, Co-Working & Serviced Offices (Lowest Rates)'],
   ['07', 'Premium Offices & Sharing Permits', 'Almas, Silver, Detached, J&G & Dual Licence Permits'],
   ['08', 'Residence Visas & Protection Insurance', '1-Year & 2-Year Visa lowest rates & EPI bands'],
-  ['09', '100% Digital 3-Step Formation Process', 'From online application to active corporate bank account'],
+  ['09', 'Our Simple & Easy 4-Step Process', 'From consultation & activity selection to bank support'],
   ['10', 'Disclaimer & Direct Advisory Contact', 'Important regulatory disclosures & email consultation'],
 ];
 
@@ -278,7 +278,7 @@ doc
   .fontSize(8.5)
   .fillColor('#94A3B8')
   .text(
-    'All prices in this Company Profile reflect venturezoneuae.com lowest-price category schedules starting from AED 5,000 across all UAE Free Zone authorities and Dubai Mainland. Official government rates and VAT rules apply where stated.',
+    'All prices in this Company Profile separate UAE Authority/Government fees from Venture Zone service fees starting from AED 5,999 across UAE Free Zones and Dubai Mainland. Official government rates and VAT rules apply where stated.',
     48,
     PAGE_H - 95,
     { width: CONTENT_W, lineGap: 3 }
@@ -375,7 +375,7 @@ doc
   .fontSize(10)
   .fillColor(COLORS.slate)
   .text(
-    'Every venturezoneuae.com formation package covers all UAE Free Zone authorities and Dubai Mainland (DET) with market-lowest transparent AED pricing starting from AED 5,000.',
+    'Every venturezoneuae.com package itemizes UAE Authority / Government pass-through fees separately from our fixed service fee — starting from AED 5,999.',
     48,
     98,
     { width: CONTENT_W, lineGap: 3 }
@@ -383,36 +383,36 @@ doc
 
 let y4 = drawTable(
   142,
-  ['Package Category', 'Offer Price', 'Standard', 'Key Inclusions'],
+  ['Package Category', 'Total AED', 'Gov + Service Split', 'Key Inclusions'],
   [
-    ['Zero-Visa License (All Free Zones)', 'AED 5,000', 'AED 11,500', '100% Ownership · 48h Digital License · All UAE Free Zones'],
-    ['1-Visa All-Inclusive (Popular)', 'AED 10,900', 'AED 17,900', 'License + 2-Yr Investor Visa + Emirates ID + Bank Desk'],
-    ['Dubai Mainland LLC (DET)', 'AED 12,900', 'AED 23,500', 'Full UAE Local Market + 1 Visa + Virtual Ejari Option'],
-    ['RAKEZ / SHAMS / Ajman FZs', 'AED 5,000', 'AED 10,800', 'Lowest UAE Formation Rate · Remote E-License Setup'],
-    ['Meydan Free Zone Setup', 'AED 7,500', 'AED 11,500', 'Dubai Address · Mix 3 Activities · 100% Remote'],
-    ['IFZA Dubai Setup', 'AED 9,900', 'AED 13,900', 'SaaS & Trading · Wio / Mashreq Friendly · Remote'],
-    ['DMCC (JLT Dubai) Package', 'AED 19,500', 'AED 28,500', '#1 Global Free Zone · Tier-1 Banking Acceptance'],
+    ['0-Visa Free Zone License', 'AED 5,999', 'Gov 5,200 + Svc 799', '100% Ownership · 48h Digital License · All UAE FZs'],
+    ['1-Visa Free Zone (Popular)', 'AED 10,500', 'Gov 8,750 + Svc 1,750', 'License + 2-Yr Visa + EID + Bank KYC Support'],
+    ['Dubai Mainland Instant (DET)', 'AED 10,999', 'Gov 9,199 + Svc 1,800', 'Full UAE Local Market + 1 Visa + Virtual Ejari'],
+    ['RAKEZ / SHAMS / Ajman FZs', 'AED 5,999', 'Gov 5,200 + Svc 799', 'Year 2 Renewal ~AED 5,200–6,200 · Remote Setup'],
+    ['Meydan Free Zone Setup', 'AED 7,500', 'Incl. Service Fee', 'Dubai Address · Mix 3 Activities · 100% Remote'],
+    ['IFZA Dubai Setup', 'AED 9,900', 'Incl. Service Fee', 'SaaS & Trading · Wio / Mashreq Friendly · Remote'],
+    ['DMCC (JLT Dubai) Package', 'AED 19,500', 'Incl. Service Fee', '#1 Global Free Zone · Tier-1 Banking Acceptance'],
   ],
-  [148, 92, 82, 177],
+  [145, 78, 118, 158],
   36
 );
 
-doc.roundedRect(48, y4 + 28, CONTENT_W, 130, 10).fill(COLORS.lightBg);
-doc.roundedRect(48, y4 + 28, CONTENT_W, 130, 10).lineWidth(0.75).strokeColor(COLORS.border).stroke();
+doc.roundedRect(48, y4 + 28, CONTENT_W, 136, 10).fill(COLORS.lightBg);
+doc.roundedRect(48, y4 + 28, CONTENT_W, 136, 10).lineWidth(0.75).strokeColor(COLORS.border).stroke();
 
 doc
   .font('Helvetica-Bold')
   .fontSize(12)
   .fillColor(COLORS.navy)
-  .text('Corporate Banking Support Included', 66, y4 + 46);
+  .text('Corporate Banking Support & Year 2 Renewal Clarity', 66, y4 + 44);
 doc
   .font('Helvetica')
   .fontSize(9.5)
   .fillColor(COLORS.slate)
   .text(
-    '• Pre-vetted KYC file preparation before bank submission for global founders (PK, IN, UK, EU, US, GCC)\n• Fast-track digital introductions to Wio Business (3–5 days), Mashreq NeoBiz (5–7 days), and RAKBANK\n• Transfer of Incorporation (Redomiciliation) support to relocate existing foreign companies seamlessly',
+    '• Pre-vetted KYC file preparation & bank onboarding coordination for Wio Business, Mashreq NeoBiz, and RAKBANK\n• Final corporate bank account approval rests solely with each UAE bank following independent KYC/AML review\n• Optional add-ons: FTA Corporate Tax registration (AED 750), VAT filing (AED 1,250), extra visas (from AED 2,950)',
     66,
-    y4 + 68,
+    y4 + 66,
     { width: CONTENT_W - 36, lineGap: 5 }
   );
 
@@ -706,14 +706,14 @@ doc
   .font('Helvetica-Bold')
   .fontSize(22)
   .fillColor(COLORS.navy)
-  .text('PROCESS — 100% DIGITAL IN 3 STEPS', 48, 66);
+  .text('OUR SIMPLE & EASY PROCESS', 48, 66);
 
 doc
   .font('Helvetica')
   .fontSize(10.5)
   .fillColor(COLORS.slate)
   .text(
-    'Open your UAE company completely remotely without travelling to Dubai during incorporation.',
+    'Four straightforward milestones from consultation to active UAE company, Emirates ID, and corporate bank coordination.',
     48,
     98,
     { width: CONTENT_W }
@@ -722,51 +722,57 @@ doc
 const steps = [
   {
     num: '01',
-    title: 'SUBMIT YOUR ONLINE APPLICATION',
-    time: '2–5 Working Days (Express 48h Free Zones Available)',
-    desc: 'Complete our 3-step online setup calculator, submit your passport copy, and select up to 3 business activities. Your company name reservation, management screening, and compliance approval are processed digitally.',
+    title: 'CONSULTATION & ACTIVITY SELECTION',
+    time: 'Day 1 · 15-Minute Structuring Call',
+    desc: 'Choose the most cost-effective UAE Free Zone or Dubai Mainland jurisdiction and match up to 3 licensed activities with full transparency on Government vs. Service fees.',
   },
   {
     num: '02',
-    title: 'PAY, E-SIGN & RECEIVE PROVISIONAL BANK LETTER',
-    time: '2–3 Working Days',
-    desc: 'Settle your transparent registration and licence fees, complete a brief remote video KYC verification, and e-sign your MOA. Receive your provisional approval and bank letter immediately to begin Wio or Mashreq onboarding. Flexi-desk licences are issued at this stage.',
+    title: 'PASSPORT KYC & AUTHORITY FILING',
+    time: 'Days 1–2 · 100% Remote Submission',
+    desc: 'Submit your passport copy online while our PRO desk secures your trade name reservation, prepares your MOA, and submits all filings to the issuing authority.',
   },
   {
     num: '03',
-    title: 'RECEIVE E-LICENCE, EMIRATES ID & BANK ACCOUNT',
-    time: '2–3 Working Days + 3-Day Visa Biometrics',
-    desc: 'Your official electronic Trade Licence and Certificate of Incorporation are delivered digitally. If your package includes a UAE Residence Visa, visit Dubai for just 3 business days for VIP medical screening and Emirates ID fingerprinting.',
+    title: '48-HOUR DIGITAL E-LICENCE ISSUANCE',
+    time: '48 Hours (2–5 Working Days Standard)',
+    desc: 'Receive your official electronic Trade Licence, Certificate of Incorporation, and Establishment Card documents remotely without travelling to Dubai.',
+  },
+  {
+    num: '04',
+    title: 'VISA, EMIRATES ID & BANKING SUPPORT',
+    time: '3-Day Biometrics + Bank KYC Coordination',
+    desc: 'If you select a residency package, complete medical & Emirates ID biometrics in Dubai while our compliance desk prepares your pre-vetted KYC pack for Wio, Mashreq, or RAKBANK.',
   },
 ];
 
-let sy = 148;
+let sy = 142;
 steps.forEach((st) => {
-  doc.roundedRect(48, sy, CONTENT_W, 145, 10).fill(COLORS.lightBg);
-  doc.roundedRect(64, sy + 20, 44, 44, 10).fill(COLORS.emerald);
+  doc.roundedRect(48, sy, CONTENT_W, 128, 10).fill(COLORS.lightBg);
+  doc.roundedRect(64, sy + 18, 42, 42, 10).fill(COLORS.emerald);
   doc
     .font('Helvetica-Bold')
-    .fontSize(16)
+    .fontSize(15)
     .fillColor(COLORS.white)
-    .text(st.num, 64, sy + 33, { width: 44, align: 'center' });
+    .text(st.num, 64, sy + 31, { width: 42, align: 'center' });
 
   doc
     .font('Helvetica-Bold')
-    .fontSize(13)
+    .fontSize(12.5)
     .fillColor(COLORS.navy)
-    .text(st.title, 124, sy + 20, { width: CONTENT_W - 92 });
+    .text(st.title, 120, sy + 18, { width: CONTENT_W - 88 });
   doc
     .font('Helvetica-Bold')
-    .fontSize(9)
+    .fontSize(8.8)
     .fillColor(COLORS.blue)
-    .text(st.time, 124, sy + 40, { width: CONTENT_W - 92 });
+    .text(st.time, 120, sy + 36, { width: CONTENT_W - 88 });
   doc
     .font('Helvetica')
-    .fontSize(9.8)
+    .fontSize(9.4)
     .fillColor(COLORS.slate)
-    .text(st.desc, 124, sy + 60, { width: CONTENT_W - 92, lineGap: 3.5 });
+    .text(st.desc, 120, sy + 54, { width: CONTENT_W - 88, lineGap: 3 });
 
-  sy += 165;
+  sy += 144;
 });
 
 drawFooterBar();
@@ -793,8 +799,8 @@ doc
 
 const disclaimers = [
   'The information and pricing proposals contained in this Company Profile are provided by venturezoneuae.com for informational and business planning purposes and do not constitute formal legal, tax, financial, or investment advice.',
-  'Category rates shown reflect our revised lowest-price formation schedules starting from AED 5,000 across all UAE Free Zone authorities and Dubai Mainland. Official UAE government authority fees, external regulatory approvals (e.g., VARA, Central Bank, DET), and 5% UAE VAT (where applicable) remain subject to issuing authority regulations.',
-  'Corporate banking onboarding timelines depend on individual shareholder KYC verification, nationality risk classification, and bank compliance review. venturezoneuae.com prepares and pre-vets documentation for Wio Business, Mashreq NeoBiz, RAKBANK, and other UAE partners.',
+  'Listed prices separate UAE Authority/Government pass-through fees from Venture Zone service fees (starting from AED 5,999 for 0-Visa Free Zone, AED 10,500 for 1-Visa Free Zone, and AED 10,999 for Dubai Mainland). Official government fees, third-party approvals (e.g., VARA, Central Bank, DET), Year 2 renewal tiers, and 5% UAE VAT remain subject to authority rules.',
+  'UAE corporate bank account approval rests solely with each licensed bank following independent KYC/AML and source-of-funds compliance checks. venturezoneuae.com provides document pre-vetting, compliance file structuring, and onboarding coordination—not guaranteed bank approval.',
   'It remains the sole responsibility of the applicant to verify applicable regulatory requirements and supply authentic incorporation documentation.',
 ];
 
@@ -822,7 +828,7 @@ doc
   .fontSize(10.5)
   .fillColor('#CBD5E1')
   .text(
-    'Lock in our lowest market pricing starting from AED 5,000 today via our online cost calculator or contact our formation specialists directly by email.',
+    'Lock in transparent Gov + Service Fee formation pricing starting from AED 5,999 today via our online cost calculator or contact our formation specialists directly by email.',
     72,
     566,
     { width: CONTENT_W - 48, lineGap: 4 }

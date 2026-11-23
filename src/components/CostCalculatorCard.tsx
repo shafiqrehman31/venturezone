@@ -290,9 +290,9 @@ export function CostCalculatorCard({
                   <Globe2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="font-display text-sm font-bold text-[#111827]">Dubai Free Zone</div>
+                  <div className="font-display text-sm font-bold text-[#111827]">All UAE Free Zones</div>
                   <div className="mt-0.5 text-xs text-slate-500">
-                    Meydan / RAKEZ · Remote setup · No office required
+                    All UAE Authorities · Remote setup · No office required
                   </div>
                 </div>
               </button>
@@ -559,13 +559,17 @@ export function CostCalculatorCard({
 
             <div className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-[#FAFAFB] px-4 py-2 text-sm">
               <div className="flex items-center justify-between py-2">
-                <span className="text-slate-600">Trade License ({breakdown.authority})</span>
+                <span className="text-slate-600">Trade License / Authority Fee ({breakdown.authority})</span>
                 <span className="font-mono font-semibold tabular-nums text-[#111827]">
                   AED {breakdown.licenseFeeAed.toLocaleString()}
                 </span>
               </div>
               <div className="flex items-center justify-between py-2">
-                <span className="text-slate-600">Establishment Card &amp; E-Channel</span>
+                <span className="text-slate-600">
+                  {jurisdiction === 'Free Zone' && visaCount === 0
+                    ? 'Venture Zone Service & Filing Fee'
+                    : 'Establishment Card & E-Channel'}
+                </span>
                 <span className="font-mono font-semibold tabular-nums text-[#111827]">
                   AED {breakdown.establishmentCardAed.toLocaleString()}
                 </span>
@@ -583,7 +587,7 @@ export function CostCalculatorCard({
                 </span>
               </div>
               <div className="flex items-center justify-between py-2">
-                <span className="text-slate-600">Corporate Bank Account Onboarding</span>
+                <span className="text-slate-600">Bank KYC Pre-Vetting &amp; Coordination</span>
                 <span className="font-mono font-semibold tabular-nums text-[#008A72]">
                   {breakdown.bankSupportFeeAed === 0
                     ? 'Included'
@@ -592,8 +596,10 @@ export function CostCalculatorCard({
               </div>
               <div className="flex items-center justify-between py-3">
                 <div>
-                  <div className="font-display font-bold text-[#111827]">Total All-Inclusive</div>
-                  <div className="text-xs text-slate-500">Zero hidden renewal charges</div>
+                  <div className="font-display font-bold text-[#111827]">Total Estimated Setup</div>
+                  <div className="text-xs text-slate-500">
+                    Authority fees separated from service fee · Bank subject to KYC
+                  </div>
                 </div>
                 <div className="text-right">
                   <div className="font-mono text-xl font-bold tabular-nums text-[#ff0031]">

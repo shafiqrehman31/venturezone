@@ -54,17 +54,17 @@ export function detectDefaultCountryCode(): string {
 }
 
 export const DEFAULT_CMS_LANDING: Omit<CmsLandingConfig, 'updatedAt'> = {
-  heroHeadline: 'Launch Your Dubai Company in 48 Hours',
+  heroHeadline: 'Dubai Company Formation in 48 Hours',
   heroSubheadline:
-    'Government-registered UAE Free Zone & Mainland company formation with transparent fixed AED pricing and direct corporate banking support.',
+    'Government-registered UAE Free Zone & Dubai Mainland company setup with itemized Authority Fees vs. Venture Zone Service Fees and dedicated corporate banking coordination.',
   whatsappNumber: '971504829100',
   phoneDisplay: 'WhatsApp Desk',
   googleRatingScore: '4.9/5',
   googleReviewCount: '300+ Founders',
-  zeroVisaPriceAed: 5000,
-  oneVisaPriceAed: 10900,
-  mainlandPriceAed: 12900,
-  promoNotice: 'Lowest Price Guarantee · UAE Company Formation Starting From AED 5,000 · Fixed 3-Year Renewal Rate',
+  zeroVisaPriceAed: 5999,
+  oneVisaPriceAed: 10500,
+  mainlandPriceAed: 10999,
+  promoNotice: 'Transparent Gov + Service Fee Split · 0-Visa Setup AED 5,999 · 48h Digital E-License',
   siteName: 'venturezoneuae.com',
   logoDataUrl: '/assets/aistudio/Venture-Zone-Logo_0a72a1ee.png',
   footerLogoDataUrl: '/assets/aistudio/Venture-Zone-Logos-white_949ee09f.png',
@@ -84,9 +84,9 @@ export const DEFAULT_NAV_MENU_ITEMS: Omit<NavMenuItem, 'updatedAt'>[] = [
     order: 1,
     visible: true,
     isBuiltIn: true,
-    pageTitle: 'Launch Your Dubai Company in 48 Hours',
+    pageTitle: 'Dubai Company Formation in 48 Hours',
     pageSubtitle:
-      'Government-registered UAE Free Zone & Mainland company formation with transparent fixed AED pricing and direct corporate banking support.',
+      'Government-registered UAE Free Zone & Dubai Mainland company setup with itemized Authority Fees vs. Venture Zone Service Fees and dedicated corporate banking coordination.',
     pageBody: '',
     ctaLabel: 'Calculate My Setup Cost',
   },
@@ -158,7 +158,7 @@ export const DEFAULT_INVENTORY_SEED: Omit<InventoryItem, 'updatedAt'>[] = [
     lowThreshold: 8,
     alertEnabled: true,
     alertChannel: 'Dashboard Banner',
-    unitCostAed: 5000,
+    unitCostAed: 5999,
   },
   {
     id: 'inv_ifza_one_visa',
@@ -170,7 +170,7 @@ export const DEFAULT_INVENTORY_SEED: Omit<InventoryItem, 'updatedAt'>[] = [
     lowThreshold: 7,
     alertEnabled: true,
     alertChannel: 'Ops Slack Channel',
-    unitCostAed: 10900,
+    unitCostAed: 10500,
   },
   {
     id: 'inv_ded_mainland',
@@ -182,7 +182,7 @@ export const DEFAULT_INVENTORY_SEED: Omit<InventoryItem, 'updatedAt'>[] = [
     lowThreshold: 5,
     alertEnabled: true,
     alertChannel: 'Dashboard Banner',
-    unitCostAed: 12900,
+    unitCostAed: 10999,
   },
   {
     id: 'inv_wio_bank_fasttrack',
@@ -218,7 +218,7 @@ export const DEFAULT_BLOG_POSTS: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'
     excerpt:
       'A practical breakdown of KYC documentation, source-of-wealth checks, and digital banking timelines with Wio Business and Mashreq NeoBiz.',
     content:
-      'Opening a corporate bank account in the UAE is often the deciding milestone for newly incorporated founders. Digital-first banks such as Wio Business and Mashreq NeoBiz have shortened onboarding from six weeks to as little as 3 to 5 business days once your UAE trade license and Emirates ID are active.\n\nTo pass compliance on the first submission, prepare: (1) a clear 1-page business model summary with target client regions, (2) 6 months of personal bank statements showing initial capital, (3) verified passport and Emirates ID copies, and (4) matching website and domain credentials.\n\nOur compliance desk pre-vets every application before bank submission so international founders—including applicants from Pakistan, the UK, India, and GCC countries—avoid avoidable compliance rejections.',
+      'Opening a corporate bank account in the UAE is often the deciding milestone for newly incorporated founders. Digital-first banks such as Wio Business and Mashreq NeoBiz typically complete reviews in 3 to 7 business days once your UAE trade license and Emirates ID are active.\n\nTo pass compliance on the first submission, prepare: (1) a clear 1-page business model summary with target client regions, (2) 6 months of personal bank statements showing initial capital, (3) verified passport and Emirates ID copies, and (4) matching website and domain credentials.\n\nOur compliance desk pre-vets every application before bank submission so international founders—including applicants from Pakistan, the UK, India, and GCC countries—minimize avoidable compliance queries. Final account approval always rests with the issuing bank.',
     readTimeMinutes: 4,
     authorName: 'Tariq Al Mansoori',
     status: 'published',
@@ -228,9 +228,9 @@ export const DEFAULT_BLOG_POSTS: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'
     slug: 'dubai-free-zone-vs-mainland-llc-guide',
     category: 'Jurisdiction Guide',
     excerpt:
-      'Compare 100% foreign ownership, local UAE trading rights, office Ejari requirements, and annual renewal costs across Meydan, RAKEZ, and Dubai Mainland.',
+      'Compare 100% foreign ownership, local UAE trading rights, office Ejari requirements, and annual renewal costs across UAE Free Zones and Dubai Mainland.',
     content:
-      'Both Free Zone and Dubai Mainland companies now grant 100% foreign ownership for over 1,000 commercial and professional activities. The right choice depends on where your customers sit and how many residence visas your team needs.\n\nFree Zones like Meydan and RAKEZ are ideal for international consultancies, SaaS founders, e-commerce sellers, and holding companies that do not require a physical retail storefront in Dubai. You receive your e-license within 48 hours with zero physical office lease required.\n\nMainland LLCs licensed under Dubai Economy & Tourism (DET) allow unrestricted direct B2B and B2C invoicing across the UAE mainland and government tenders, with scalable visa quotas tied to workspace size.',
+      'Both Free Zone and Dubai Mainland companies now grant 100% foreign ownership for over 1,000 commercial and professional activities. The right choice depends on where your customers sit and how many residence visas your team needs.\n\nFree Zones are ideal for international consultancies, SaaS founders, e-commerce sellers, and holding companies that do not require a physical retail storefront in Dubai. You receive your e-license within 48 hours with zero physical office lease required.\n\nMainland LLCs licensed under Dubai Economy & Tourism (DET) allow unrestricted direct B2B and B2C invoicing across the UAE mainland and government tenders, with scalable visa quotas tied to workspace size.',
     readTimeMinutes: 5,
     authorName: 'Nadia Farooq',
     status: 'published',
@@ -249,26 +249,113 @@ export const DEFAULT_BLOG_POSTS: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'
   },
 ];
 
+export interface PricingFeeSplitRow {
+  id: string;
+  packageName: string;
+  idealUseCase: string;
+  authorityFeeAed: number;
+  serviceFeeAed: number;
+  totalAed: number;
+  year2RenewalRange: string;
+  highlights: string;
+}
+
+export const PRICING_FEE_SPLIT_TABLE: PricingFeeSplitRow[] = [
+  {
+    id: 'zero-visa',
+    packageName: '0-Visa UAE Free Zone',
+    idealUseCase: 'Remote consultants, SaaS, e-commerce & holding entities',
+    authorityFeeAed: 5200,
+    serviceFeeAed: 799,
+    totalAed: 5999,
+    year2RenewalRange: 'AED 5,200 – 6,200 / yr',
+    highlights: '100% Ownership · Up to 3 Activities · 48h Digital E-License',
+  },
+  {
+    id: 'one-visa',
+    packageName: '1-Visa Free Zone (All-Inclusive)',
+    idealUseCase: 'Solo founders relocating or applying for UAE business banking',
+    authorityFeeAed: 8750,
+    serviceFeeAed: 1750,
+    totalAed: 10500,
+    year2RenewalRange: 'AED 7,800 – 9,200 / yr',
+    highlights: 'License + Establishment Card + 1 Visa Quota + EID & Bank Support',
+  },
+  {
+    id: 'mainland-llc',
+    packageName: 'Dubai Mainland Instant Setup (DET)',
+    idealUseCase: 'Local UAE B2B/B2C trade, retail storefronts & gov tenders',
+    authorityFeeAed: 9199,
+    serviceFeeAed: 1800,
+    totalAed: 10999,
+    year2RenewalRange: 'AED 8,500 – 11,500 / yr',
+    highlights: 'DET LLC + 100% Ownership + 1 Investor Visa + Flexi/Ejari Options',
+  },
+];
+
+export const OPTIONAL_ADDONS = [
+  {
+    name: 'Additional 2-Year Investor / Employee Visa',
+    cost: 'From AED 2,950 + EID/Medical',
+    note: 'Authority quota allocation & immigration typing per added visa',
+  },
+  {
+    name: 'Establishment Card & E-Channel (0-Visa Upgrade)',
+    cost: 'AED 850 – AED 1,450',
+    note: 'Required only if upgrading a 0-visa company for residency sponsorship',
+  },
+  {
+    name: 'Medical Fitness & Emirates ID Biometrics Typing',
+    cost: 'AED 950 – AED 1,050',
+    note: 'Government pass-through fee (VIP 6-hour medical option available)',
+  },
+  {
+    name: 'Corporate Tax Registration (FTA)',
+    cost: 'AED 750 one-time',
+    note: 'Mandatory Federal Tax Authority registration after license issuance',
+  },
+  {
+    name: 'VAT Registration & Compliance Advisory',
+    cost: 'AED 1,250 one-time',
+    note: 'Mandatory above AED 375,000 taxable revenue; voluntary above AED 187,500',
+  },
+  {
+    name: 'Corporate Bank KYC Pre-Vetting & Coordination',
+    cost: 'Included (1-Visa & Mainland)',
+    note: 'Document preparation & onboarding with Wio, Mashreq, or RAKBANK',
+  },
+];
+
 export const FAQ_ITEMS = [
   {
-    question: 'Can Pakistani, Indian, UK, and international founders open a corporate bank account?',
+    question: 'Are there any hidden charges? How do you split Government vs. Service Fees?',
     answer:
-      'Yes. We support founders across 60+ nationalities with dedicated compliance pre-screening. Digital UAE business banks like Wio Business and Mashreq NeoBiz open accounts within 3–5 business days once your Emirates ID is issued, and we prepare your KYC file, business profile, and bank interview brief.',
+      'Zero hidden markups. Every quote separates the direct UAE Authority / Government fee (license issuance, Establishment Card, visa quota) from Venture Zone’s fixed professional service fee (starting at AED 799 on 0-Visa setups). Optional items like Corporate Tax registration (AED 750) or extra visas are disclosed upfront before payment.',
   },
   {
-    question: 'Are there any hidden renewal fees or surprise government charges?',
+    question: 'What should I expect for Year 2 renewal costs?',
     answer:
-      'No. Every quote itemizes government license fees, establishment card, visa allocation, and medical/Emirates ID fees upfront in AED. Your annual renewal rate is locked and disclosed on day one with zero hidden PRO surcharges.',
+      'Year 2 renewals depend on your issuing Free Zone or Mainland authority, workspace tier (Flexi-Desk vs. Ejari), and active visa count. Expect approximately AED 5,200–6,200/year for a 0-Visa Free Zone license, AED 7,800–9,200/year for a 1-Visa Free Zone license (visas themselves renew every 2 years), and AED 8,500–11,500/year for Dubai Mainland DET renewals.',
   },
   {
-    question: 'Can I register my Dubai company 100% remotely without travelling?',
+    question: 'Is UAE corporate bank account approval guaranteed?',
     answer:
-      'Yes. Company incorporation, trade name approval, and digital E-License issuance happen 100% remotely within 48 hours. If you select a visa package, you only visit Dubai for 3 business days to complete your medical test and Emirates ID biometrics.',
+      'No agency can ethically guarantee bank approval, because final KYC/AML and risk sign-off rests strictly with each licensed UAE bank. What Venture Zone delivers is compliance pre-vetting, business profile & source-of-funds preparation, and direct onboarding coordination with Wio Business, Mashreq NeoBiz, and RAKBANK to maximize first-pass approval.',
   },
   {
-    question: 'How does the 0% personal income tax and UAE corporate tax work?',
+    question: 'How fast is the setup timeline for the license, visa, and bank account?',
     answer:
-      'The UAE levies 0% personal income tax on salaries and dividends. Qualifying Free Zone businesses earning qualifying income can benefit from 0% corporate tax, while mainland profits below AED 375,000 are also taxed at 0%.',
+      'Trade name reservation and digital E-License issuance typically take 48 hours for express UAE Free Zones and Dubai Mainland Instant Licenses (2–5 working days across all authorities). Residence Visa & Emirates ID biometrics take ~3 business days once in Dubai, followed by 3–7 business days for digital business bank onboarding.',
+  },
+  {
+    question: 'Should I choose a UAE Free Zone or Dubai Mainland LLC?',
+    answer:
+      'Choose a UAE Free Zone (from AED 5,999) if you serve international clients, run e-commerce, SaaS, or consulting, and want 100% remote incorporation without leasing an office. Choose a Dubai Mainland Instant LLC (AED 10,999) if you invoice local UAE B2C customers directly, open retail premises, or bid on UAE government tenders.',
+  },
+  {
+    question: 'How do 0% personal income tax and UAE Corporate Tax apply?',
+    answer:
+      'The UAE levies 0% personal income tax on salaries and dividends. For corporate tax, Mainland businesses and non-qualifying income pay 0% on annual net profits up to AED 375,000 (9% above), while Qualifying Free Zone Persons meeting substance rules qualify for 0% corporate tax on qualifying income.',
   },
 ];
 
@@ -280,14 +367,14 @@ export function calculateSetupBreakdown(
   const cleanVisas = Math.max(0, Math.min(10, Math.round(visaCount)));
 
   if (jurisdiction === 'Mainland') {
-    const baseMainland = cms.mainlandPriceAed || 12900;
+    const baseMainland = cms.mainlandPriceAed || 10999;
     const extraVisas = Math.max(0, cleanVisas - 1);
     const visaAllocationAed = cleanVisas === 0 ? 0 : 2600 + extraVisas * 3100;
     const emiratesIdMedicalAed = cleanVisas * 1050;
     const establishmentCardAed = 1450;
     const bankSupportFeeAed = 0;
     const licenseFeeAed = Math.max(
-      5200,
+      4000,
       baseMainland - establishmentCardAed - 2600 - 1050 - bankSupportFeeAed
     );
     const totalAed =
@@ -295,7 +382,7 @@ export function calculateSetupBreakdown(
 
     return {
       packageId: 'mainland-llc',
-      packageName: 'Mainland LLC',
+      packageName: 'Dubai Mainland Instant LLC',
       authority: 'Dubai Economy & Tourism (DET)',
       licenseFeeAed,
       establishmentCardAed,
@@ -309,13 +396,13 @@ export function calculateSetupBreakdown(
 
   // Free Zone (covers all UAE Free Zone authorities)
   if (cleanVisas === 0) {
-    const totalAed = cms.zeroVisaPriceAed || 5000;
+    const totalAed = cms.zeroVisaPriceAed || 5999;
     const bankSupportFeeAed = 0;
-    const establishmentCardAed = 850;
+    const establishmentCardAed = 799; // Venture Zone Service Fee + admin filing on 0-Visa breakdown
     const licenseFeeAed = Math.max(1000, totalAed - establishmentCardAed);
     return {
       packageId: 'zero-visa',
-      packageName: 'Zero-Visa License',
+      packageName: '0-Visa Free Zone License',
       authority: 'All UAE Free Zone Authorities',
       licenseFeeAed,
       establishmentCardAed,
@@ -327,7 +414,7 @@ export function calculateSetupBreakdown(
     };
   }
 
-  const baseOneVisa = cms.oneVisaPriceAed || 10900;
+  const baseOneVisa = cms.oneVisaPriceAed || 10500;
   const extraVisas = Math.max(0, cleanVisas - 1);
   const establishmentCardAed = 1250;
   const visaAllocationAed = 2400 + extraVisas * 2950;
@@ -339,7 +426,7 @@ export function calculateSetupBreakdown(
 
   return {
     packageId: cleanVisas === 1 ? 'one-visa' : 'freezone-multi-visa',
-    packageName: cleanVisas === 1 ? '1-Visa All-Inclusive' : `Free Zone (${cleanVisas}-Visa)`,
+    packageName: cleanVisas === 1 ? '1-Visa Free Zone (All-Inclusive)' : `Free Zone (${cleanVisas}-Visa)`,
     authority: 'All UAE Free Zone Authorities',
     licenseFeeAed,
     establishmentCardAed,

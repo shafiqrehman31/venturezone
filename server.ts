@@ -215,19 +215,20 @@ app.post('/api/whatsapp-bot', async (req, res) => {
 
   const rawSite = body.context?.siteName?.trim();
   const brandName = !rawSite || rawSite === 'Meridian Setup' ? 'venturezoneuae.com' : rawSite;
-  const zeroPrice = Number(body.context?.zeroVisaPriceAed || 5000).toLocaleString();
-  const onePrice = Number(body.context?.oneVisaPriceAed || 10900).toLocaleString();
-  const mainlandPrice = Number(body.context?.mainlandPriceAed || 12900).toLocaleString();
+  const zeroPrice = Number(body.context?.zeroVisaPriceAed || 5999).toLocaleString();
+  const onePrice = Number(body.context?.oneVisaPriceAed || 10500).toLocaleString();
+  const mainlandPrice = Number(body.context?.mainlandPriceAed || 10999).toLocaleString();
 
   const systemInstruction = [
     `You are the official WhatsApp Business Formation Assistant for ${brandName}, a UAE Free Zone & Dubai Mainland company formation consultancy.`,
     `Tone: crisp, warm, trustworthy, executive WhatsApp-style replies (concise 2-4 short sentences or 3 tight bullet points max; never write long essays).`,
     `Formatting: Write plain text only. Do NOT use markdown asterisks (**), hashtags (#), or code blocks.`,
     `Never mention a physical street address or landline phone number—support is online, WhatsApp & email (info@venturezoneuae.com) only.`,
-    `We cover ALL UAE Free Zone authorities (including RAKEZ, SHAMS, Ajman, Meydan, IFZA, DMCC & more) plus Dubai Mainland (DET) with market-lowest transparent rates:`,
-    `- Zero-Visa All UAE Free Zone License: AED ${zeroPrice} (RAKEZ/SHAMS/Ajman from AED 5,000; Meydan from AED 7,500; IFZA from AED 9,900; DMCC from AED 19,500).`,
-    `- 1-Visa All-Inclusive Free Zone Package: AED ${onePrice} (Most Popular; includes 2-year UAE investor visa, Emirates ID, VIP medical, Establishment Card, and Wio/Mashreq corporate bank pre-vetting).`,
-    `- Dubai Mainland LLC (DET): AED ${mainlandPrice} (Trade anywhere across UAE local market & government tenders, 100% ownership, 1 investor visa included).`,
+    `Never promise or guarantee UAE corporate bank account approval—clarify that final approval rests with each bank's compliance/KYC team, while Venture Zone provides document pre-vetting and onboarding coordination.`,
+    `We cover ALL UAE Free Zone authorities (RAKEZ, SHAMS, Ajman, Meydan, IFZA, DMCC & more) plus Dubai Mainland (DET) with transparent Authority/Gov Fees separated from Venture Zone Service Fees:`,
+    `- 0-Visa Free Zone License: AED ${zeroPrice} (Authority/Gov ~AED 5,200 + Venture Zone Service AED 799; Year 2 renewal ~AED 5,200-6,200).`,
+    `- 1-Visa All-Inclusive Free Zone Package: AED ${onePrice} (Authority/Gov ~AED 8,750 + Service AED 1,750; includes 2-year UAE investor visa, Emirates ID, VIP medical, Establishment Card, and Wio/Mashreq bank KYC pre-vetting).`,
+    `- Dubai Mainland Instant Setup (DET): AED ${mainlandPrice} (Authority/Gov ~AED 9,199 + Service AED 1,800; trade anywhere across UAE local market & government tenders, 100% ownership, 1 investor visa included).`,
     `Workspace, Office, Permit & Visa lowest rates:`,
     `- Workspaces: Flexi Desks AED 5,000/yr, Co-Working Desks AED 8,500/yr, Serviced Desks AED 12,000/yr, Serviced Offices AED 18,000/yr.`,
     `- Premium Offices: Almas Tower AED 45,000/yr, Silver Tower AED 28,000/yr, Detached AED 28,000/yr, J&G Premium/Fitted AED 19,000/yr.`,
@@ -317,11 +318,13 @@ function buildProposalEmailTemplate(input: ProposalEmailInput) {
     ``,
     `Thank you for contacting venturezoneuae.com regarding ${safeService} (${safeJurisdiction}).`,
     ``,
-    `Attached to this email is our Company Profile & Lowest-Price Setup Proposal (venturezoneuae-company-profile.pdf), covering all UAE Free Zone authorities and Dubai Mainland (DET):`,
+    `Attached to this email is our Company Profile & Transparent Setup Proposal (venturezoneuae-company-profile.pdf), separating UAE Authority/Government fees from Venture Zone's fixed service fee across all UAE Free Zone authorities and Dubai Mainland (DET):`,
     ``,
-    `- Zero-Visa All UAE Free Zone License: Starting from AED 5,000`,
-    `- 1-Visa All-Inclusive Free Zone Package: AED 10,900 (Includes 2-Yr Investor Visa, Emirates ID & Banking Desk)`,
-    `- Dubai Mainland LLC (DET): AED 12,900 (Full UAE Local Market & Tenders, 100% Ownership)`,
+    `- 0-Visa UAE Free Zone License: AED 5,999 (Authority/Gov AED 5,200 + Service AED 799)`,
+    `- 1-Visa Free Zone (All-Inclusive): AED 10,500 (Authority/Gov AED 8,750 + Service AED 1,750)`,
+    `- Dubai Mainland Instant Setup (DET): AED 10,999 (Authority/Gov AED 9,199 + Service AED 1,800)`,
+    ``,
+    `Note: Corporate banking accounts remain subject to the issuing bank's independent KYC/AML review (we provide pre-vetting and onboarding coordination). Official authority rates remain subject to UAE regulatory updates.`,
     ``,
     `Your Submitted Request Summary:`,
     `- Name: ${safeName}`,
@@ -357,29 +360,29 @@ function buildProposalEmailTemplate(input: ProposalEmailInput) {
               <p style="margin:0 0 14px;font-size:15px;font-weight:700;color:#111827;">Dear ${escapeHtml(safeName)},</p>
               <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#334155;">
                 Thank you for contacting <strong>venturezoneuae.com</strong> regarding <strong>${escapeHtml(safeService)}</strong> (${escapeHtml(safeJurisdiction)}).
-                Please find attached our official <strong>Company Profile &amp; 2026 Pricing Proposal</strong> (<code>venturezoneuae-company-profile.pdf</code>), covering all UAE Free Zone authorities and Dubai Mainland (DET).
+                Please find attached our official <strong>Company Profile &amp; Transparent Pricing Proposal</strong> (<code>venturezoneuae-company-profile.pdf</code>), itemizing UAE Government/Authority fees vs. Venture Zone's fixed service fee.
               </p>
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:18px 0;border:1px solid #E2E8F0;border-radius:12px;background:#FAFAFB;">
                 <tr>
                   <td style="padding:14px 16px;border-bottom:1px solid #E2E8F0;font-size:13px;">
-                    <strong style="color:#111827;">Zero-Visa All UAE Free Zone License</strong><br/>
-                    <span style="color:#64748B;">RAKEZ, SHAMS, Ajman, Meydan, IFZA &amp; all UAE Free Zones</span>
+                    <strong style="color:#111827;">0-Visa UAE Free Zone License</strong><br/>
+                    <span style="color:#64748B;">Gov/Authority AED 5,200 + Venture Zone Service AED 799</span>
                   </td>
-                  <td align="right" style="padding:14px 16px;border-bottom:1px solid #E2E8F0;font-size:14px;font-weight:700;color:#ff0031;white-space:nowrap;">AED 5,000</td>
+                  <td align="right" style="padding:14px 16px;border-bottom:1px solid #E2E8F0;font-size:14px;font-weight:700;color:#ff0031;white-space:nowrap;">AED 5,999</td>
                 </tr>
                 <tr>
                   <td style="padding:14px 16px;border-bottom:1px solid #E2E8F0;font-size:13px;">
-                    <strong style="color:#111827;">1-Visa All-Inclusive Free Zone Package</strong><br/>
-                    <span style="color:#64748B;">License + 2-Yr Investor Visa + Emirates ID + Banking Support</span>
+                    <strong style="color:#111827;">1-Visa Free Zone (All-Inclusive)</strong><br/>
+                    <span style="color:#64748B;">Gov/Authority AED 8,750 + Service AED 1,750 · Visa + EID + Bank KYC</span>
                   </td>
-                  <td align="right" style="padding:14px 16px;border-bottom:1px solid #E2E8F0;font-size:14px;font-weight:700;color:#ff0031;white-space:nowrap;">AED 10,900</td>
+                  <td align="right" style="padding:14px 16px;border-bottom:1px solid #E2E8F0;font-size:14px;font-weight:700;color:#ff0031;white-space:nowrap;">AED 10,500</td>
                 </tr>
                 <tr>
                   <td style="padding:14px 16px;font-size:13px;">
-                    <strong style="color:#111827;">Dubai Mainland LLC (DET)</strong><br/>
-                    <span style="color:#64748B;">100% Ownership · Full UAE Local Trading &amp; 1 Investor Visa</span>
+                    <strong style="color:#111827;">Dubai Mainland Instant Setup (DET)</strong><br/>
+                    <span style="color:#64748B;">Gov/Authority AED 9,199 + Service AED 1,800 · Full UAE Market + 1 Visa</span>
                   </td>
-                  <td align="right" style="padding:14px 16px;font-size:14px;font-weight:700;color:#ff0031;white-space:nowrap;">AED 12,900</td>
+                  <td align="right" style="padding:14px 16px;font-size:14px;font-weight:700;color:#ff0031;white-space:nowrap;">AED 10,999</td>
                 </tr>
               </table>
               <div style="margin:18px 0;padding:14px 16px;border-left:4px solid #00b294;background:#F0FDFA;border-radius:8px;font-size:13px;color:#111827;">

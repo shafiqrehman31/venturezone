@@ -101,12 +101,13 @@ export function AdminDashboard({ user, onViewSite }: AdminDashboardProps) {
         } else {
           const existingCms = cmsSnap.docs[0].data() as CmsLandingConfig;
           const isLegacyName = !existingCms.siteName || existingCms.siteName === 'Meridian Setup';
-          const needsZero = [12500, 11500].includes(existingCms.zeroVisaPriceAed);
-          const needsOne = [18900, 17900].includes(existingCms.oneVisaPriceAed);
-          const needsMainland = [24500, 23500].includes(existingCms.mainlandPriceAed);
+          const needsZero = [12500, 11500, 5000].includes(existingCms.zeroVisaPriceAed);
+          const needsOne = [18900, 17900, 10900].includes(existingCms.oneVisaPriceAed);
+          const needsMainland = [24500, 23500, 12900].includes(existingCms.mainlandPriceAed);
           const needsPromo =
             existingCms.promoNotice?.startsWith('Q4 Allocation Open') ||
-            existingCms.promoNotice?.startsWith('Special Offer · AED 1,000 Off');
+            existingCms.promoNotice?.startsWith('Special Offer · AED 1,000 Off') ||
+            existingCms.promoNotice?.startsWith('Lowest Price Guarantee');
 
           if (isLegacyName || needsZero || needsOne || needsMainland || needsPromo) {
             batch.update(doc(db, 'cmsLanding', 'main'), {
@@ -138,18 +139,18 @@ export function AdminDashboard({ user, onViewSite }: AdminDashboardProps) {
           const allInv = await getDocs(collection(db, 'inventory'));
           const legacyPriceMap: Record<string, { oldPrices: number[]; newPrice: number; newName?: string }> = {
             inv_meydan_zero: {
-              oldPrices: [12500, 11500],
-              newPrice: 5000,
+              oldPrices: [12500, 11500, 5000],
+              newPrice: 5999,
               newName: 'All UAE Free Zones Zero-Visa Quota',
             },
             inv_ifza_one_visa: {
-              oldPrices: [18900, 17900],
-              newPrice: 10900,
+              oldPrices: [18900, 17900, 10900],
+              newPrice: 10500,
               newName: 'All UAE Free Zones 1-Visa Allocation',
             },
             inv_ded_mainland: {
-              oldPrices: [24500, 23500],
-              newPrice: 12900,
+              oldPrices: [24500, 23500, 12900],
+              newPrice: 10999,
             },
             inv_wio_bank_fasttrack: {
               oldPrices: [1500],

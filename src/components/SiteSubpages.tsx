@@ -37,11 +37,26 @@ interface SubpageProps {
 
 const FREE_ZONES = [
   {
+    id: 'rakez',
+    name: 'RAKEZ / SHAMS / Ajman Free Zones',
+    focus: 'E-Commerce, Consultancy, Freelance & SME',
+    priceAed: 5999,
+    standardPriceAed: 10800,
+    speed: '2–3 Business Days',
+    remote: '100% Remote',
+    visaCap: '0 to 5 Visas (All UAE Options)',
+    highlights: [
+      '0-Visa entry license at AED 5,999 (Gov AED 5,200 + Service AED 799)',
+      'Transparent Year 2 renewal schedule across UAE authorities',
+      'Fast digital establishment card & flexi-desk',
+    ],
+  },
+  {
     id: 'meydan',
     name: 'Meydan Free Zone',
     focus: 'Consultancy, Tech, E-Commerce & Holding',
-    priceAed: 11500,
-    standardPriceAed: 12500,
+    priceAed: 7500,
+    standardPriceAed: 11500,
     speed: '48 Hours',
     remote: '100% Remote',
     visaCap: 'Up to 6 Visas (Flexi-Desk)',
@@ -55,8 +70,8 @@ const FREE_ZONES = [
     id: 'ifza',
     name: 'IFZA Dubai',
     focus: 'SaaS, Digital Agencies & General Trading',
-    priceAed: 13900,
-    standardPriceAed: 14900,
+    priceAed: 9900,
+    standardPriceAed: 13900,
     speed: '3 Business Days',
     remote: '100% Remote',
     visaCap: 'Up to 6 Visas',
@@ -67,26 +82,11 @@ const FREE_ZONES = [
     ],
   },
   {
-    id: 'rakez',
-    name: 'RAKEZ Economic Zone',
-    focus: 'E-Commerce, Industrial, Freelance & SME',
-    priceAed: 10800,
-    standardPriceAed: 11800,
-    speed: '2–3 Business Days',
-    remote: '100% Remote',
-    visaCap: 'Up to 5 Visas (Co-Working)',
-    highlights: [
-      'Lowest annual renewal rate in the UAE',
-      'Dedicated warehouse & industrial options',
-      'Fast establishment card issuance',
-    ],
-  },
-  {
     id: 'dmcc',
     name: 'DMCC (JLT Dubai)',
     focus: 'Commodities, Crypto, Fintech & Enterprise',
-    priceAed: 28500,
-    standardPriceAed: 29500,
+    priceAed: 19500,
+    standardPriceAed: 28500,
     speed: '7–10 Business Days',
     remote: 'Remote + Portal KYC',
     visaCap: 'Scalable Office Visas',
@@ -114,7 +114,7 @@ export function FreeZonesPage({ menuItem, onStartQuote }: SubpageProps) {
 
   const visibleZones = FREE_ZONES.filter((z) => {
     if (filterType === 'dubai') return z.id !== 'rakez';
-    if (filterType === 'budget') return z.priceAed <= 14000;
+    if (filterType === 'budget') return z.priceAed <= 10000;
     return true;
   });
 
@@ -159,7 +159,7 @@ export function FreeZonesPage({ menuItem, onStartQuote }: SubpageProps) {
               ) : (
                 <FileDown className="h-4 w-4 text-[#00b294]" />
               )}
-              <span>{downloadingBooklet ? 'Preparing PDF...' : 'Download Booklet (PDF)'}</span>
+              <span>{downloadingBooklet ? 'Preparing PDF...' : 'Download Company Profile'}</span>
             </button>
           </div>
         </div>
@@ -177,13 +177,13 @@ export function FreeZonesPage({ menuItem, onStartQuote }: SubpageProps) {
       {/* Interactive Filter Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h2 className="font-display text-2xl font-bold text-[#111827]">
-          Compare Approved Free Zones
+          Compare All UAE Free Zone Authorities
         </h2>
         <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white/80 p-1 backdrop-blur">
           {[
             { id: 'all', label: 'All Jurisdictions' },
             { id: 'dubai', label: 'Dubai Emirate' },
-            { id: 'budget', label: 'Under AED 14,000' },
+            { id: 'budget', label: 'Under AED 10,000' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -222,7 +222,7 @@ export function FreeZonesPage({ menuItem, onStartQuote }: SubpageProps) {
 
               <div className="mt-4 flex items-baseline justify-between border-y border-slate-200/70 py-3.5">
                 <span className="text-xs font-medium text-slate-500">
-                  Offer Price (- AED 1,000)
+                  Lowest Offer Price
                 </span>
                 <div className="text-right">
                   <span className="mr-2 font-mono text-xs text-slate-400 line-through">
@@ -265,10 +265,10 @@ export function FreeZonesPage({ menuItem, onStartQuote }: SubpageProps) {
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
           <div>
             <h2 className="font-display text-2xl font-bold text-[#111827]">
-              DMCC Workspaces, Offices, Permits &amp; Visa Schedule
+              UAE Workspaces, Offices, Permits &amp; Visa Schedule
             </h2>
             <p className="mt-1 text-sm text-slate-600">
-              All categories reflect venturezoneuae.com&apos;s AED 1,000 reduction vs. standard schedules.
+              All categories reflect venturezoneuae.com&apos;s transparent UAE pricing schedule with formation packages starting from AED 5,999.
             </p>
           </div>
           <button
@@ -283,7 +283,7 @@ export function FreeZonesPage({ menuItem, onStartQuote }: SubpageProps) {
               <FileDown className="h-4 w-4 text-white" />
             )}
             <span>
-              {downloadingBooklet ? 'Preparing PDF...' : 'Download Full Booklet (PDF)'}
+              {downloadingBooklet ? 'Preparing PDF...' : 'Download Company Profile'}
             </span>
           </button>
         </div>
@@ -620,7 +620,7 @@ export function GuidesContactPage({
       .substring(2, 6)
       .toUpperCase()}`;
     const orderId = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    const estimatedTotalAed = jurisdiction === 'Mainland' ? 23500 : 17900;
+    const estimatedTotalAed = jurisdiction === 'Mainland' ? 10999 : 10500;
 
     let pipedriveSyncStatus: 'pending' | 'synced' | 'pending_config' | 'failed' = 'pending';
     let pipedriveDealId: string | undefined;
@@ -640,7 +640,7 @@ export function GuidesContactPage({
           authority:
             jurisdiction === 'Mainland'
               ? 'Dubai Economy & Tourism (DET)'
-              : 'Meydan / IFZA Free Zone',
+              : 'All UAE Free Zone Authorities',
           businessActivity: 'Advisory Consultation Inquiry',
           visaCount: 1,
           packageName: jurisdiction === 'Mainland' ? 'Mainland LLC' : '1-Visa All-Inclusive',
@@ -671,7 +671,9 @@ export function GuidesContactPage({
       ...(email.trim() ? { email: email.trim().slice(0, 200) } : {}),
       jurisdiction,
       authority:
-        jurisdiction === 'Mainland' ? 'Dubai Economy & Tourism (DET)' : 'Meydan / IFZA Free Zone',
+        jurisdiction === 'Mainland'
+          ? 'Dubai Economy & Tourism (DET)'
+          : 'All UAE Free Zone Authorities',
       businessActivity: 'Advisory Consultation Inquiry',
       visaCount: 1,
       packageId: jurisdiction === 'Mainland' ? 'mainland-llc' : 'one-visa',
@@ -690,7 +692,9 @@ export function GuidesContactPage({
       trackingCode,
       jurisdiction,
       authority:
-        jurisdiction === 'Mainland' ? 'Dubai Economy & Tourism (DET)' : 'Meydan / IFZA Free Zone',
+        jurisdiction === 'Mainland'
+          ? 'Dubai Economy & Tourism (DET)'
+          : 'All UAE Free Zone Authorities',
       packageName: jurisdiction === 'Mainland' ? 'Mainland LLC' : '1-Visa All-Inclusive',
       visaCount: 1,
       estimatedTotalAed,
