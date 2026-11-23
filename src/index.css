@@ -90,8 +90,33 @@ input[type="range"].visa-slider::-moz-range-thumb {
   cursor: pointer;
 }
 
+@keyframes partner-marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.partner-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: partner-marquee 38s linear infinite;
+  will-change: transform;
+}
+
+.partner-marquee-wrapper:hover .partner-marquee-track,
+.partner-marquee-wrapper:focus-within .partner-marquee-track {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .partner-marquee-track {
+    animation: none;
   }
 }
