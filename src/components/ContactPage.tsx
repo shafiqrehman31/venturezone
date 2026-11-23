@@ -262,7 +262,7 @@ export function ContactPage({ cms, onStartQuote }: ContactPageProps) {
                 ) : (
                   <FileDown className="h-4 w-4" />
                 )}
-                <span>{downloadingProfile ? 'Preparing PDF...' : 'Download Company Profile'}</span>
+                <span>{downloadingProfile ? 'Preparing PDF...' : 'Download Process Details'}</span>
               </button>
 
               <a
@@ -338,7 +338,7 @@ export function ContactPage({ cms, onStartQuote }: ContactPageProps) {
                   className="inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-[#ff0031] px-5 text-xs font-bold text-white hover:bg-[#D90029]"
                 >
                   <FileDown className="h-4 w-4" />
-                  <span>Download Company Profile</span>
+                  <span>Download Process Details</span>
                 </button>
                 <button
                   type="button"

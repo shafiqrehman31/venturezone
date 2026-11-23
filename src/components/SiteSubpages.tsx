@@ -159,7 +159,7 @@ export function FreeZonesPage({ menuItem, onStartQuote }: SubpageProps) {
               ) : (
                 <FileDown className="h-4 w-4 text-[#00b294]" />
               )}
-              <span>{downloadingBooklet ? 'Preparing PDF...' : 'Download Company Profile'}</span>
+              <span>{downloadingBooklet ? 'Preparing PDF...' : 'Download Process Details'}</span>
             </button>
           </div>
         </div>
@@ -283,7 +283,7 @@ export function FreeZonesPage({ menuItem, onStartQuote }: SubpageProps) {
               <FileDown className="h-4 w-4 text-white" />
             )}
             <span>
-              {downloadingBooklet ? 'Preparing PDF...' : 'Download Company Profile'}
+              {downloadingBooklet ? 'Preparing PDF...' : 'Download Process Details'}
             </span>
           </button>
         </div>

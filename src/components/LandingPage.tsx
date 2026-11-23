@@ -565,7 +565,7 @@ export function LandingPage() {
                           ) : (
                             <FileDown className="h-3.5 w-3.5" />
                           )}
-                          <span>{downloadingBooklet ? 'Preparing PDF...' : 'Download Company Profile'}</span>
+                          <span>{downloadingBooklet ? 'Preparing PDF...' : 'Download Process Details'}</span>
                         </button>
                         <button
                           type="button"
@@ -630,7 +630,7 @@ export function LandingPage() {
                     <FileDown className="h-4 w-4 text-[#00b294]" />
                   )}
                   <span>
-                    {downloadingBooklet ? 'Preparing PDF...' : 'Download Company Profile'}
+                    {downloadingBooklet ? 'Preparing PDF...' : 'Download Process Details'}
                   </span>
                 </button>
                 {bookletError && (

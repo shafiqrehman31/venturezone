@@ -202,10 +202,10 @@ export function SiteFooter({
               <li>
                 <button
                   type="button"
-                  onClick={() => onNavigate('guides')}
+                  onClick={() => onNavigate('contact')}
                   className="transition-colors hover:text-[#00b294]"
                 >
-                  Book Free Consultation
+                  Contact Us
                 </button>
               </li>
               <li>
@@ -220,7 +220,7 @@ export function SiteFooter({
                   ) : (
                     <FileDown className="h-3.5 w-3.5" />
                   )}
-                  <span>{downloadingBooklet ? 'Preparing PDF...' : 'Proposal Booklet (PDF)'}</span>
+                  <span>{downloadingBooklet ? 'Preparing PDF...' : 'Download Process Details'}</span>
                 </button>
               </li>
             </ul>
@@ -259,7 +259,7 @@ export function SiteFooter({
                   ) : (
                     <FileDown className="h-3.5 w-3.5 text-[#ff0031]" />
                   )}
-                  <span>{downloadingBooklet ? 'Preparing PDF...' : 'Download Booklet PDF'}</span>
+                  <span>{downloadingBooklet ? 'Preparing PDF...' : 'Download Process Details'}</span>
                 </button>
               </div>
             </div>
