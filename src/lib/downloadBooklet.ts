@@ -1,7 +1,7 @@
 export async function downloadProposalBooklet(): Promise<void> {
-  const endpoints = ['/booklet.pdf', '/api/booklet.pdf'];
+  const endpoints = ['/company-profile.pdf', '/booklet.pdf', '/api/booklet.pdf'];
   let pdfBytes: ArrayBuffer | null = null;
-  let lastError = 'Unable to download the proposal booklet right now.';
+  let lastError = 'Unable to download the Company Profile PDF right now.';
 
   for (const url of endpoints) {
     try {
@@ -25,7 +25,7 @@ export async function downloadProposalBooklet(): Promise<void> {
       const header = new Uint8Array(buf.slice(0, 5));
       const sig = String.fromCharCode(...header);
       if (sig !== '%PDF-') {
-        lastError = 'Server returned a non-PDF response instead of the booklet file.';
+        lastError = 'Server returned a non-PDF response instead of the Company Profile PDF.';
         continue;
       }
 
@@ -45,7 +45,7 @@ export async function downloadProposalBooklet(): Promise<void> {
 
   const link = document.createElement('a');
   link.href = blobUrl;
-  link.download = 'venturezoneuae-booklet.pdf';
+  link.download = 'venturezoneuae-company-profile.pdf';
   link.style.display = 'none';
   document.body.appendChild(link);
   link.click();

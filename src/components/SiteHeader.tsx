@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { Menu, MessageCircle, X } from 'lucide-react';
+import { Mail, Menu, X } from 'lucide-react';
 import type { NavMenuItem } from '../types/domain';
 
 interface SiteHeaderProps {
   currentSlug: string;
   navItems: NavMenuItem[];
   onNavigate: (slug: string) => void;
-  whatsappNumber: string;
   logoDataUrl?: string;
   siteName?: string;
 }
@@ -15,14 +14,12 @@ export function SiteHeader({
   currentSlug,
   navItems,
   onNavigate,
-  whatsappNumber,
   logoDataUrl,
   siteName,
 }: SiteHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const rawSite = siteName?.trim();
   const brandName = !rawSite || rawSite === 'Meridian Setup' ? 'venturezoneuae.com' : rawSite;
-  const cleanWaDigits = whatsappNumber.replace(/[^\d]/g, '');
   const visibleItems = navItems
     .filter((item) => item.visible)
     .sort((a, b) => a.order - b.order);
@@ -77,17 +74,18 @@ export function SiteHeader({
 
         {/* Zone 3: 1 Primary Action + Mobile Menu Toggle */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <a
-            href={`https://wa.me/${cleanWaDigits}?text=${encodeURIComponent(
-              `Hello ${brandName}, I would like a Dubai company formation consultation.`
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-[40px] items-center gap-2 rounded-xl bg-[#00b294] px-4 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#00967C] whitespace-nowrap shrink-0"
+          <button
+            type="button"
+            onClick={() => handleNavClick('contact')}
+            className={`inline-flex min-h-[40px] items-center gap-2 rounded-xl px-4 text-xs font-bold text-white shadow-sm transition-colors whitespace-nowrap shrink-0 ${
+              currentSlug === 'contact'
+                ? 'bg-[#ff0031] hover:bg-[#D90029]'
+                : 'bg-[#00b294] hover:bg-[#00967C]'
+            }`}
           >
-            <MessageCircle className="h-4 w-4" />
-            <span>WhatsApp Advisor</span>
-          </a>
+            <Mail className="h-4 w-4" />
+            <span>Contact Us</span>
+          </button>
 
           <button
             type="button"

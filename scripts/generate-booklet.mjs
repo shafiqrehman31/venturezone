@@ -28,9 +28,9 @@ const doc = new PDFDocument({
   size: 'A4',
   margins: { top: 0, bottom: 0, left: 0, right: 0 },
   info: {
-    Title: 'venturezoneuae.com — Business Setup Proposal Booklet',
+    Title: 'venturezoneuae.com — Company Profile & Pricing Proposal',
     Author: 'venturezoneuae.com',
-    Subject: 'Dubai Free Zone & Mainland Company Formation Proposal & Pricing',
+    Subject: 'All UAE Free Zone Authorities & Dubai Mainland Company Formation Proposal',
   },
 });
 
@@ -91,7 +91,7 @@ function drawFooterBar() {
     .fontSize(8)
     .fillColor(COLORS.muted)
     .text(
-      'venturezoneuae.com  ·  Dubai Business Setup Proposal  ·  Email: info@venturezoneuae.com',
+      'venturezoneuae.com  ·  Company Profile & UAE Setup Proposal  ·  Email: info@venturezoneuae.com',
       48,
       PAGE_H - 33,
       { width: CONTENT_W, align: 'center', lineBreak: false }
@@ -168,16 +168,16 @@ doc
 
 doc
   .font('Helvetica-Bold')
-  .fontSize(38)
+  .fontSize(36)
   .fillColor(COLORS.navy)
-  .text('BUSINESS\nSETUP\nPROPOSAL', 48, 102, { lineGap: 2 });
+  .text('COMPANY\nPROFILE &\nPROPOSAL', 48, 102, { lineGap: 2 });
 
 doc
   .font('Helvetica')
   .fontSize(11.5)
   .fillColor(COLORS.slate)
   .text(
-    'Dubai Free Zone, DMCC & Mainland Company Formation Packages\nUpdated Special Pricing — AED 1,000 Reduced Across Every Category',
+    'All UAE Free Zone Authorities & Dubai Mainland Formation Packages\nRevised 2026 Lowest Market Pricing — Starting From AED 5,000',
     48,
     238,
     { width: CONTENT_W, lineGap: 4 }
@@ -237,12 +237,12 @@ doc
 drawLogoBadge(PAGE_W - 186, 66);
 
 const tocItems = [
-  ['03', 'About venturezoneuae.com & Dubai Benefits', 'Why global founders launch in the UAE'],
-  ['04', 'Core Formation Packages (AED 1,000 Off)', 'Zero-Visa, 1-Visa All-Inclusive & Mainland LLC'],
-  ['05', 'Free Zone Ecosystems (Crypto, FinX & ESG)', 'Web3, fintech, trade & sustainability hubs'],
-  ['06', 'DMCC Business Centres & Workspace Rates', 'Flexi Desks, Co-Working & Serviced Offices (- AED 1,000)'],
-  ['07', 'Premium Offices & Sharing Permits', 'Almas, Silver, Detached, J&G & Dual Licence (- AED 1,000)'],
-  ['08', 'Residence Visas & Protection Insurance', '1-Year & 2-Year Visa rates (- AED 1,000) & EPI bands'],
+  ['03', 'About venturezoneuae.com & UAE Benefits', 'Why global founders incorporate across all UAE Free Zones'],
+  ['04', 'Core Formation Packages (From AED 5,000)', 'Zero-Visa, 1-Visa All-Inclusive & Dubai Mainland LLC'],
+  ['05', 'Free Zone Ecosystems (Crypto, FinX & ESG)', 'Web3, fintech, trade & sustainability hubs across UAE'],
+  ['06', 'Business Centres & Workspace Rates', 'Flexi Desks, Co-Working & Serviced Offices (Lowest Rates)'],
+  ['07', 'Premium Offices & Sharing Permits', 'Almas, Silver, Detached, J&G & Dual Licence Permits'],
+  ['08', 'Residence Visas & Protection Insurance', '1-Year & 2-Year Visa lowest rates & EPI bands'],
   ['09', '100% Digital 3-Step Formation Process', 'From online application to active corporate bank account'],
   ['10', 'Disclaimer & Direct Advisory Contact', 'Important regulatory disclosures & email consultation'],
 ];
@@ -278,7 +278,7 @@ doc
   .fontSize(8.5)
   .fillColor('#94A3B8')
   .text(
-    'All prices in this Business Setup Proposal reflect venturezoneuae.com discounted category schedules (AED 1,000 reduction per category). Official government rates and VAT rules apply where stated.',
+    'All prices in this Company Profile reflect venturezoneuae.com lowest-price category schedules starting from AED 5,000 across all UAE Free Zone authorities and Dubai Mainland. Official government rates and VAT rules apply where stated.',
     48,
     PAGE_H - 95,
     { width: CONTENT_W, lineGap: 3 }
@@ -375,7 +375,7 @@ doc
   .fontSize(10)
   .fillColor(COLORS.slate)
   .text(
-    'Every venturezoneuae.com formation package below has been reduced by AED 1,000 per category with all government licensing, establishment card, and compliance support itemized upfront.',
+    'Every venturezoneuae.com formation package covers all UAE Free Zone authorities and Dubai Mainland (DET) with market-lowest transparent AED pricing starting from AED 5,000.',
     48,
     98,
     { width: CONTENT_W, lineGap: 3 }
@@ -385,13 +385,13 @@ let y4 = drawTable(
   142,
   ['Package Category', 'Offer Price', 'Standard', 'Key Inclusions'],
   [
-    ['Zero-Visa License (Free Zone)', 'AED 11,500', 'AED 12,500', '100% Ownership · 48h Digital License · 3 Activities'],
-    ['1-Visa All-Inclusive (Popular)', 'AED 17,900', 'AED 18,900', 'License + 2-Yr Investor Visa + Emirates ID + Bank Desk'],
-    ['Dubai Mainland LLC (DET)', 'AED 23,500', 'AED 24,500', 'Full UAE Local Market + 1 Visa + Virtual Ejari Option'],
-    ['Meydan Free Zone Setup', 'AED 11,500', 'AED 12,500', 'Dubai Address · Mix 3 Activities · 100% Remote'],
-    ['IFZA Dubai Setup', 'AED 13,900', 'AED 14,900', 'SaaS & Trading · Wio / Mashreq Friendly · Remote'],
-    ['RAKEZ Economic Zone', 'AED 10,800', 'AED 11,800', 'Lowest Renewal · E-Commerce & Industrial Options'],
-    ['DMCC (JLT Dubai) Package', 'AED 28,500', 'AED 29,500', '#1 Global Free Zone · Tier-1 Banking Acceptance'],
+    ['Zero-Visa License (All Free Zones)', 'AED 5,000', 'AED 11,500', '100% Ownership · 48h Digital License · All UAE Free Zones'],
+    ['1-Visa All-Inclusive (Popular)', 'AED 10,900', 'AED 17,900', 'License + 2-Yr Investor Visa + Emirates ID + Bank Desk'],
+    ['Dubai Mainland LLC (DET)', 'AED 12,900', 'AED 23,500', 'Full UAE Local Market + 1 Visa + Virtual Ejari Option'],
+    ['RAKEZ / SHAMS / Ajman FZs', 'AED 5,000', 'AED 10,800', 'Lowest UAE Formation Rate · Remote E-License Setup'],
+    ['Meydan Free Zone Setup', 'AED 7,500', 'AED 11,500', 'Dubai Address · Mix 3 Activities · 100% Remote'],
+    ['IFZA Dubai Setup', 'AED 9,900', 'AED 13,900', 'SaaS & Trading · Wio / Mashreq Friendly · Remote'],
+    ['DMCC (JLT Dubai) Package', 'AED 19,500', 'AED 28,500', '#1 Global Free Zone · Tier-1 Banking Acceptance'],
   ],
   [148, 92, 82, 177],
   36
@@ -510,7 +510,7 @@ doc
   .fontSize(10)
   .fillColor(COLORS.slate)
   .text(
-    'All-inclusive workspace solutions in JLT and Uptown Dubai with utilities, high-speed connectivity, and flexible lease terms. All annual category rates reflect an AED 1,000 discount via venturezoneuae.com.',
+    'All-inclusive workspace solutions across Dubai & UAE Free Zones with utilities, high-speed connectivity, and flexible lease terms—revised to market-lowest annual rates starting from AED 5,000.',
     48,
     98,
     { width: CONTENT_W, lineGap: 4 }
@@ -520,10 +520,10 @@ let y6 = drawTable(
   152,
   ['Workspace Category', 'Offer Rate', 'Standard', 'Visa Eligibility'],
   [
-    ['Flexi Desks', 'From AED 15,000 / year', 'AED 16,000', 'Up to 3 Visas'],
-    ['Co-Working Desks', 'From AED 18,000 / year', 'AED 19,000', 'Up to 3 Visas'],
-    ['Serviced Desks', 'From AED 24,000 / year', 'AED 25,000', 'Up to 3 Visas'],
-    ['Serviced Offices', 'From AED 34,000 / year', 'AED 35,000', '4–8 Visas (by size)'],
+    ['Flexi Desks', 'From AED 5,000 / year', 'AED 15,000', 'Up to 3 Visas'],
+    ['Co-Working Desks', 'From AED 8,500 / year', 'AED 18,000', 'Up to 3 Visas'],
+    ['Serviced Desks', 'From AED 12,000 / year', 'AED 24,000', 'Up to 3 Visas'],
+    ['Serviced Offices', 'From AED 18,000 / year', 'AED 34,000', '4–8 Visas (by size)'],
   ],
   [140, 142, 95, 122],
   30
@@ -553,7 +553,7 @@ bcPerks.forEach((p) => {
 drawFooterBar();
 
 // ============================================================================
-// PAGE 7: PREMIUM OFFICES & OFFICE SHARING PERMITS (- AED 1,000)
+// PAGE 7: PREMIUM OFFICES & OFFICE SHARING PERMITS
 // ============================================================================
 doc.addPage();
 drawHeaderBar('Premium Offices & Permits', 7);
@@ -569,7 +569,7 @@ doc
   .fontSize(10)
   .fillColor(COLORS.slate)
   .text(
-    'Fitted, shell-and-core, and detached executive suites across JLT & Uptown Dubai commercial towers—all reduced by AED 1,000 per category.',
+    'Fitted, shell-and-core, and detached executive suites across JLT & Dubai commercial towers—revised to market-lowest annual category rates.',
     48,
     98,
     { width: CONTENT_W, lineGap: 3 }
@@ -579,11 +579,11 @@ let y7 = drawTable(
   142,
   ['Property Category', 'Offer Rent', 'Standard', 'Area & Visas'],
   [
-    ['Almas Tower Premium Offices', 'From AED 77,000 / yr', 'AED 78,000', '88–323 Sq.ft · 3–6 Visas'],
-    ['Silver Tower Premium Offices', 'From AED 49,000 / yr', 'AED 50,000', '140–172 Sq.ft · 3–6 Visas'],
-    ['Detached Premium Offices', 'From AED 49,000 / yr', 'AED 50,000', '137–552 Sq.ft · 3–6 Visas'],
-    ['J&G Premium Offices', 'From AED 34,000 / yr', 'AED 35,000', '110–360 Sq.ft · 3–6 Visas'],
-    ['J&G Fitted Offices', 'From AED 34,000 / yr', 'AED 35,000', '129–300 Sq.ft · 3 Visas'],
+    ['Almas Tower Premium Offices', 'From AED 45,000 / yr', 'AED 77,000', '88–323 Sq.ft · 3–6 Visas'],
+    ['Silver Tower Premium Offices', 'From AED 28,000 / yr', 'AED 49,000', '140–172 Sq.ft · 3–6 Visas'],
+    ['Detached Premium Offices', 'From AED 28,000 / yr', 'AED 49,000', '137–552 Sq.ft · 3–6 Visas'],
+    ['J&G Premium Offices', 'From AED 19,000 / yr', 'AED 34,000', '110–360 Sq.ft · 3–6 Visas'],
+    ['J&G Fitted Offices', 'From AED 19,000 / yr', 'AED 34,000', '129–300 Sq.ft · 3 Visas'],
   ],
   [158, 128, 82, 131],
   30
@@ -593,7 +593,7 @@ doc
   .font('Helvetica-Bold')
   .fontSize(15)
   .fillColor(COLORS.navy)
-  .text('OFFICE SHARING & DUAL LICENCE PERMITS (- AED 1,000)', 48, y7 + 34);
+  .text('OFFICE SHARING & DUAL LICENCE PERMITS', 48, y7 + 34);
 
 doc
   .font('Helvetica')
@@ -610,8 +610,8 @@ drawTable(
   y7 + 92,
   ['Permit Category', 'Offer Fee', 'Standard', 'Eligibility'],
   [
-    ['Office Sharing Permit (Annual)', 'AED 1,515', 'AED 2,515', 'Common shareholding / group firms'],
-    ['Dual Licence Office Permit (Annual)', 'AED 4,000', 'AED 5,000', 'Operate DET Mainland from Free Zone'],
+    ['Office Sharing Permit (Annual)', 'AED 950', 'AED 1,515', 'Common shareholding / group firms'],
+    ['Dual Licence Office Permit (Annual)', 'AED 2,500', 'AED 4,000', 'Operate DET Mainland from Free Zone'],
   ],
   [168, 95, 82, 154],
   34
@@ -620,7 +620,7 @@ drawTable(
 drawFooterBar();
 
 // ============================================================================
-// PAGE 8: RESIDENCE VISAS & EMPLOYEE PROTECTION INSURANCE (- AED 1,000)
+// PAGE 8: RESIDENCE VISAS & EMPLOYEE PROTECTION INSURANCE
 // ============================================================================
 doc.addPage();
 drawHeaderBar('Visa Solutions & Insurance', 8);
@@ -629,14 +629,14 @@ doc
   .font('Helvetica-Bold')
   .fontSize(22)
   .fillColor(COLORS.navy)
-  .text('RESIDENCE VISA SOLUTIONS (- AED 1,000)', 48, 66);
+  .text('RESIDENCE VISA SOLUTIONS', 48, 66);
 
 doc
   .font('Helvetica')
   .fontSize(10)
   .fillColor(COLORS.slate)
   .text(
-    'Streamlined 1-Year and 2-Year UAE residency visas for founders and employees outside the UAE, with every visa category reduced by AED 1,000.',
+    'Streamlined 1-Year and 2-Year UAE residency visas for founders and employees outside the UAE, revised to our lowest market processing tiers.',
     48,
     98,
     { width: CONTENT_W }
@@ -646,11 +646,11 @@ let y8 = drawTable(
   134,
   ['Residency Visa Category', 'Offer Rate', 'Standard', 'Notes'],
   [
-    ['1 Year Residency Visa', 'From AED 1,237*', 'AED 2,237', 'Outside UAE standard entry'],
-    ['2 Year Residency Visa (Standard)', 'From AED 1,973*', 'AED 2,973', 'Outside UAE standard entry'],
-    ['2 Year Visa (50+ Visas · 10% Tier)', 'AED 1,276*', 'AED 2,276', 'Volume corporate discount'],
-    ['2 Year Visa (100+ Visas · 20% Tier)', 'AED 1,095*', 'AED 2,095', 'Volume corporate discount'],
-    ['2 Year Visa (200+ Visas · 30% Tier)', 'AED 898*', 'AED 1,898', 'Enterprise volume tier'],
+    ['1 Year Residency Visa', 'From AED 950*', 'AED 1,950', 'Outside UAE standard entry'],
+    ['2 Year Residency Visa (Standard)', 'From AED 1,450*', 'AED 2,450', 'Outside UAE standard entry'],
+    ['2 Year Visa (50+ Visas · 10% Tier)', 'AED 990*', 'AED 1,890', 'Volume corporate discount'],
+    ['2 Year Visa (100+ Visas · 20% Tier)', 'AED 790*', 'AED 1,690', 'Volume corporate discount'],
+    ['2 Year Visa (200+ Visas · 30% Tier)', 'AED 650*', 'AED 1,550', 'Enterprise volume tier'],
   ],
   [175, 108, 78, 138],
   27
@@ -792,8 +792,8 @@ doc
   .text('DISCLAIMER & ADVISORY NOTICE', 48, 134);
 
 const disclaimers = [
-  'The information and pricing proposals contained in this booklet are provided by venturezoneuae.com for informational and business planning purposes and do not constitute formal legal, tax, financial, or investment advice.',
-  'Category rates shown reflect our AED 1,000 category reduction across formation, workspace, permit, and visa schedules. Official UAE government authority fees, external regulatory approvals (e.g., VARA, Central Bank, DET), and 5% UAE VAT (where applicable) remain subject to issuing authority regulations.',
+  'The information and pricing proposals contained in this Company Profile are provided by venturezoneuae.com for informational and business planning purposes and do not constitute formal legal, tax, financial, or investment advice.',
+  'Category rates shown reflect our revised lowest-price formation schedules starting from AED 5,000 across all UAE Free Zone authorities and Dubai Mainland. Official UAE government authority fees, external regulatory approvals (e.g., VARA, Central Bank, DET), and 5% UAE VAT (where applicable) remain subject to issuing authority regulations.',
   'Corporate banking onboarding timelines depend on individual shareholder KYC verification, nationality risk classification, and bank compliance review. venturezoneuae.com prepares and pre-vets documentation for Wio Business, Mashreq NeoBiz, RAKBANK, and other UAE partners.',
   'It remains the sole responsibility of the applicant to verify applicable regulatory requirements and supply authentic incorporation documentation.',
 ];
@@ -822,7 +822,7 @@ doc
   .fontSize(10.5)
   .fillColor('#CBD5E1')
   .text(
-    'Lock in your AED 1,000 discounted package today via our online cost calculator or contact our formation specialists directly by email.',
+    'Lock in our lowest market pricing starting from AED 5,000 today via our online cost calculator or contact our formation specialists directly by email.',
     72,
     566,
     { width: CONTENT_W - 48, lineGap: 4 }

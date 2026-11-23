@@ -173,3 +173,27 @@ export interface CostBreakdown {
   totalAed: number;
   totalUsd: number;
 }
+
+export type ContactInquiryStatus = 'New' | 'Proposal Sent' | 'Contacted' | 'Closed';
+
+export type ContactEmailStatus = 'sent' | 'template_ready' | 'failed';
+
+export type ContactJurisdiction = 'All UAE Free Zones' | 'Dubai Mainland (DET)' | 'Need Advice';
+
+export interface ContactInquiry {
+  id: string;
+  fullName: string;
+  email: string;
+  countryCode: string;
+  whatsappNumber: string;
+  jurisdiction: ContactJurisdiction;
+  serviceInterest: string;
+  message?: string;
+  status: ContactInquiryStatus;
+  emailStatus: ContactEmailStatus;
+  emailSubject?: string;
+  emailNote?: string;
+  createdAt?: Timestamp | null;
+  updatedAt?: Timestamp | null;
+}
+

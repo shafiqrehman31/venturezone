@@ -264,6 +264,33 @@ service cloud.firestore {
         && data.createdAt is timestamp;
     }
 
+    function isValidContactInquiry(data) {
+      return data.keys().hasAll([
+          'id', 'fullName', 'email', 'countryCode', 'whatsappNumber',
+          'jurisdiction', 'serviceInterest', 'status', 'emailStatus',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'fullName', 'email', 'countryCode', 'whatsappNumber',
+          'jurisdiction', 'serviceInterest', 'message', 'status',
+          'emailStatus', 'emailSubject', 'emailNote', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 120
+        && data.email is string && data.email.size() >= 5 && data.email.size() <= 200
+        && data.countryCode is string && data.countryCode.size() >= 2 && data.countryCode.size() <= 8
+        && data.whatsappNumber is string && data.whatsappNumber.size() >= 6 && data.whatsappNumber.size() <= 32
+        && data.jurisdiction in ['All UAE Free Zones', 'Dubai Mainland (DET)', 'Need Advice']
+        && data.serviceInterest is string && data.serviceInterest.size() >= 2 && data.serviceInterest.size() <= 120
+        && (!('message' in data) || (data.message is string && data.message.size() <= 2000))
+        && data.status in ['New', 'Proposal Sent', 'Contacted', 'Closed']
+        && data.emailStatus in ['sent', 'template_ready', 'failed']
+        && (!('emailSubject' in data) || (data.emailSubject is string && data.emailSubject.size() <= 200))
+        && (!('emailNote' in data) || (data.emailNote is string && data.emailNote.size() <= 300))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
     // -------------------------------------------------------------------------
     // Collection Match Blocks
     // -------------------------------------------------------------------------
@@ -433,6 +460,27 @@ service cloud.firestore {
         && incoming().createdAt == request.time;
       allow update: if false;
       allow delete: if isAdmin() && isValidId(exportId);
+    }
+
+    match /contactInquiries/{inquiryId} {
+      allow get: if isValidId(inquiryId) && isAdmin();
+      allow list: if isAdmin();
+      allow create: if isValidId(inquiryId)
+        && isValidContactInquiry(incoming())
+        && incoming().id == inquiryId
+        && incoming().status in ['New', 'Proposal Sent']
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(inquiryId)
+        && isValidContactInquiry(incoming())
+        && incoming().id == existing().id
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'status', 'emailStatus', 'emailSubject', 'emailNote', 'updatedAt'
+        ]);
+      allow delete: if isAdmin() && isValidId(inquiryId);
     }
   }
 }

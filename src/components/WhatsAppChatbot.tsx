@@ -173,7 +173,7 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
     const authority =
       leadJurisdiction === 'Mainland'
         ? 'Dubai Economy & Tourism (DET)'
-        : 'Meydan / IFZA Free Zone';
+        : 'All UAE Free Zone Authorities';
     const packageName =
       leadJurisdiction === 'Mainland' ? 'Mainland LLC' : '1-Visa All-Inclusive';
 

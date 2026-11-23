@@ -21,6 +21,7 @@ import {
   FileEdit,
   Link2,
   LogOut,
+  Mail,
   Menu,
   Package,
   RefreshCw,
@@ -36,6 +37,7 @@ import { OperationType, auth, db, handleFirestoreError } from '../lib/firebase';
 import type {
   BlogPost,
   CmsLandingConfig,
+  ContactInquiry,
   FormationOrder,
   InventoryAlert,
   InventoryItem,
@@ -44,6 +46,7 @@ import type {
 } from '../types/domain';
 import { AdminAnalyticsTab } from './AdminAnalyticsTab';
 import { AdminCmsTab } from './AdminCmsTab';
+import { AdminContactTab } from './AdminContactTab';
 import { AdminInventoryTab } from './AdminInventoryTab';
 import { AdminOrdersTab } from './AdminOrdersTab';
 
@@ -52,13 +55,14 @@ interface AdminDashboardProps {
   onViewSite: () => void;
 }
 
-type AdminTab = 'analytics' | 'orders' | 'inventory' | 'pipedrive' | 'cms';
+type AdminTab = 'analytics' | 'orders' | 'contact' | 'inventory' | 'pipedrive' | 'cms';
 
 export function AdminDashboard({ user, onViewSite }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<AdminTab>('analytics');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [orders, setOrders] = useState<FormationOrder[]>([]);
+  const [contactInquiries, setContactInquiries] = useState<ContactInquiry[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [alerts, setAlerts] = useState<InventoryAlert[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
@@ -96,16 +100,26 @@ export function AdminDashboard({ user, onViewSite }: AdminDashboardProps) {
           hasWrites = true;
         } else {
           const existingCms = cmsSnap.docs[0].data() as CmsLandingConfig;
-          if (!existingCms.siteName || existingCms.siteName === 'Meridian Setup') {
+          const isLegacyName = !existingCms.siteName || existingCms.siteName === 'Meridian Setup';
+          const needsZero = [12500, 11500].includes(existingCms.zeroVisaPriceAed);
+          const needsOne = [18900, 17900].includes(existingCms.oneVisaPriceAed);
+          const needsMainland = [24500, 23500].includes(existingCms.mainlandPriceAed);
+          const needsPromo =
+            existingCms.promoNotice?.startsWith('Q4 Allocation Open') ||
+            existingCms.promoNotice?.startsWith('Special Offer · AED 1,000 Off');
+
+          if (isLegacyName || needsZero || needsOne || needsMainland || needsPromo) {
             batch.update(doc(db, 'cmsLanding', 'main'), {
-              siteName: DEFAULT_CMS_LANDING.siteName,
-              phoneDisplay: DEFAULT_CMS_LANDING.phoneDisplay,
-              ...(existingCms.zeroVisaPriceAed === 12500 ? { zeroVisaPriceAed: 11500 } : {}),
-              ...(existingCms.oneVisaPriceAed === 18900 ? { oneVisaPriceAed: 17900 } : {}),
-              ...(existingCms.mainlandPriceAed === 24500 ? { mainlandPriceAed: 23500 } : {}),
-              ...(existingCms.promoNotice?.startsWith('Q4 Allocation Open')
-                ? { promoNotice: DEFAULT_CMS_LANDING.promoNotice }
+              ...(isLegacyName
+                ? {
+                    siteName: DEFAULT_CMS_LANDING.siteName,
+                    phoneDisplay: DEFAULT_CMS_LANDING.phoneDisplay,
+                  }
                 : {}),
+              ...(needsZero ? { zeroVisaPriceAed: DEFAULT_CMS_LANDING.zeroVisaPriceAed } : {}),
+              ...(needsOne ? { oneVisaPriceAed: DEFAULT_CMS_LANDING.oneVisaPriceAed } : {}),
+              ...(needsMainland ? { mainlandPriceAed: DEFAULT_CMS_LANDING.mainlandPriceAed } : {}),
+              ...(needsPromo ? { promoNotice: DEFAULT_CMS_LANDING.promoNotice } : {}),
               updatedAt: serverTimestamp(),
             });
             hasWrites = true;
@@ -122,17 +136,37 @@ export function AdminDashboard({ user, onViewSite }: AdminDashboardProps) {
           hasWrites = true;
         } else {
           const allInv = await getDocs(collection(db, 'inventory'));
-          const legacyPriceMap: Record<string, { oldPrice: number; newPrice: number }> = {
-            inv_meydan_zero: { oldPrice: 12500, newPrice: 11500 },
-            inv_ifza_one_visa: { oldPrice: 18900, newPrice: 17900 },
-            inv_ded_mainland: { oldPrice: 24500, newPrice: 23500 },
+          const legacyPriceMap: Record<string, { oldPrices: number[]; newPrice: number; newName?: string }> = {
+            inv_meydan_zero: {
+              oldPrices: [12500, 11500],
+              newPrice: 5000,
+              newName: 'All UAE Free Zones Zero-Visa Quota',
+            },
+            inv_ifza_one_visa: {
+              oldPrices: [18900, 17900],
+              newPrice: 10900,
+              newName: 'All UAE Free Zones 1-Visa Allocation',
+            },
+            inv_ded_mainland: {
+              oldPrices: [24500, 23500],
+              newPrice: 12900,
+            },
+            inv_wio_bank_fasttrack: {
+              oldPrices: [1500],
+              newPrice: 500,
+            },
+            inv_vip_emirates_medical: {
+              oldPrices: [950],
+              newPrice: 650,
+            },
           };
           allInv.docs.forEach((d) => {
             const invData = d.data() as InventoryItem;
             const rule = legacyPriceMap[d.id];
-            if (rule && invData.unitCostAed === rule.oldPrice) {
+            if (rule && rule.oldPrices.includes(invData.unitCostAed)) {
               batch.update(doc(db, 'inventory', d.id), {
                 unitCostAed: rule.newPrice,
+                ...(rule.newName ? { name: rule.newName } : {}),
                 updatedAt: serverTimestamp(),
               });
               hasWrites = true;
@@ -285,6 +319,19 @@ export function AdminDashboard({ user, onViewSite }: AdminDashboardProps) {
       (err) => handleFirestoreError(err, OperationType.LIST, 'reportExports')
     );
 
+    const unsubContacts = onSnapshot(
+      query(collection(db, 'contactInquiries'), orderBy('createdAt', 'desc')),
+      (snap) => {
+        setContactInquiries(
+          snap.docs.map((d) => ({
+            id: d.id,
+            ...(d.data() as Omit<ContactInquiry, 'id'>),
+          }))
+        );
+      },
+      (err) => handleFirestoreError(err, OperationType.LIST, 'contactInquiries')
+    );
+
     return () => {
       unsubOrders();
       unsubInventory();
@@ -293,6 +340,7 @@ export function AdminDashboard({ user, onViewSite }: AdminDashboardProps) {
       unsubNavMenu();
       unsubBlogs();
       unsubExports();
+      unsubContacts();
     };
   }, []);
 
@@ -351,9 +399,17 @@ export function AdminDashboard({ user, onViewSite }: AdminDashboardProps) {
     (item) => item.alertEnabled && item.stockLevel <= item.lowThreshold
   );
 
+  const newContactCount = contactInquiries.filter((c) => c.status === 'New').length;
+
   const navItems: { id: AdminTab; label: string; icon: typeof BarChart3; badge?: number }[] = [
     { id: 'analytics', label: 'Overview & Analytics', icon: BarChart3 },
     { id: 'orders', label: 'Orders & Exports', icon: ClipboardList, badge: orders.length },
+    {
+      id: 'contact',
+      label: 'Contact Inquiries',
+      icon: Mail,
+      badge: newContactCount > 0 ? newContactCount : contactInquiries.length || undefined,
+    },
     {
       id: 'inventory',
       label: 'Inventory & Alerts',
@@ -367,6 +423,7 @@ export function AdminDashboard({ user, onViewSite }: AdminDashboardProps) {
   const tabTitles: Record<AdminTab, string> = {
     analytics: 'Overview & Customer Analytics',
     orders: 'Real-Time Orders & Management Exports',
+    contact: 'Contact Us Inbox & Proposal Email Templates',
     inventory: 'Inventory Pools & Customizable Alerts',
     pipedrive: 'Pipedrive CRM Lead Sync',
     cms: 'Landing Page & Blog CMS',
@@ -590,6 +647,10 @@ export function AdminDashboard({ user, onViewSite }: AdminDashboardProps) {
               onSyncPipedrive={handleSyncOrderToPipedrive}
               syncingOrderId={syncingOrderId}
             />
+          )}
+
+          {activeTab === 'contact' && (
+            <AdminContactTab inquiries={contactInquiries} />
           )}
 
           {activeTab === 'inventory' && (

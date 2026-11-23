@@ -61,10 +61,10 @@ export const DEFAULT_CMS_LANDING: Omit<CmsLandingConfig, 'updatedAt'> = {
   phoneDisplay: 'WhatsApp Desk',
   googleRatingScore: '4.9/5',
   googleReviewCount: '300+ Founders',
-  zeroVisaPriceAed: 11500,
-  oneVisaPriceAed: 17900,
-  mainlandPriceAed: 23500,
-  promoNotice: 'Special Offer · AED 1,000 Off Every Category · Fixed 3-Year Renewal Rate Lock',
+  zeroVisaPriceAed: 5000,
+  oneVisaPriceAed: 10900,
+  mainlandPriceAed: 12900,
+  promoNotice: 'Lowest Price Guarantee · UAE Company Formation Starting From AED 5,000 · Fixed 3-Year Renewal Rate',
   siteName: 'venturezoneuae.com',
   logoDataUrl: '/assets/aistudio/Venture-Zone-Logo_0a72a1ee.png',
   footerLogoDataUrl: '/assets/aistudio/Venture-Zone-Logos-white_949ee09f.png',
@@ -150,7 +150,7 @@ export const DEFAULT_NAV_MENU_ITEMS: Omit<NavMenuItem, 'updatedAt'>[] = [
 export const DEFAULT_INVENTORY_SEED: Omit<InventoryItem, 'updatedAt'>[] = [
   {
     id: 'inv_meydan_zero',
-    name: 'Meydan Free Zone Zero-Visa Quota',
+    name: 'All UAE Free Zones Zero-Visa Quota',
     category: 'License Quota',
     packageKey: 'zero-visa',
     stockLevel: 14,
@@ -158,11 +158,11 @@ export const DEFAULT_INVENTORY_SEED: Omit<InventoryItem, 'updatedAt'>[] = [
     lowThreshold: 8,
     alertEnabled: true,
     alertChannel: 'Dashboard Banner',
-    unitCostAed: 11500,
+    unitCostAed: 5000,
   },
   {
     id: 'inv_ifza_one_visa',
-    name: 'IFZA / Meydan 1-Visa Allocation',
+    name: 'All UAE Free Zones 1-Visa Allocation',
     category: 'Visa Allocation',
     packageKey: 'one-visa',
     stockLevel: 5,
@@ -170,7 +170,7 @@ export const DEFAULT_INVENTORY_SEED: Omit<InventoryItem, 'updatedAt'>[] = [
     lowThreshold: 7,
     alertEnabled: true,
     alertChannel: 'Ops Slack Channel',
-    unitCostAed: 17900,
+    unitCostAed: 10900,
   },
   {
     id: 'inv_ded_mainland',
@@ -182,7 +182,7 @@ export const DEFAULT_INVENTORY_SEED: Omit<InventoryItem, 'updatedAt'>[] = [
     lowThreshold: 5,
     alertEnabled: true,
     alertChannel: 'Dashboard Banner',
-    unitCostAed: 23500,
+    unitCostAed: 12900,
   },
   {
     id: 'inv_wio_bank_fasttrack',
@@ -194,7 +194,7 @@ export const DEFAULT_INVENTORY_SEED: Omit<InventoryItem, 'updatedAt'>[] = [
     lowThreshold: 6,
     alertEnabled: true,
     alertChannel: 'Ops Slack Channel',
-    unitCostAed: 1500,
+    unitCostAed: 500,
   },
   {
     id: 'inv_vip_emirates_medical',
@@ -206,7 +206,7 @@ export const DEFAULT_INVENTORY_SEED: Omit<InventoryItem, 'updatedAt'>[] = [
     lowThreshold: 10,
     alertEnabled: true,
     alertChannel: 'Daily Digest',
-    unitCostAed: 950,
+    unitCostAed: 650,
   },
 ];
 
@@ -280,15 +280,15 @@ export function calculateSetupBreakdown(
   const cleanVisas = Math.max(0, Math.min(10, Math.round(visaCount)));
 
   if (jurisdiction === 'Mainland') {
-    const baseMainland = cms.mainlandPriceAed || 23500;
+    const baseMainland = cms.mainlandPriceAed || 12900;
     const extraVisas = Math.max(0, cleanVisas - 1);
-    const visaAllocationAed = cleanVisas === 0 ? 0 : 3800 + extraVisas * 4200;
-    const emiratesIdMedicalAed = cleanVisas * 1450;
-    const establishmentCardAed = 2200;
-    const bankSupportFeeAed = 1500;
+    const visaAllocationAed = cleanVisas === 0 ? 0 : 2600 + extraVisas * 3100;
+    const emiratesIdMedicalAed = cleanVisas * 1050;
+    const establishmentCardAed = 1450;
+    const bankSupportFeeAed = 0;
     const licenseFeeAed = Math.max(
-      10500,
-      baseMainland - establishmentCardAed - (cleanVisas >= 1 ? 3800 + 1450 : 0) - bankSupportFeeAed
+      5200,
+      baseMainland - establishmentCardAed - 2600 - 1050 - bankSupportFeeAed
     );
     const totalAed =
       licenseFeeAed + establishmentCardAed + visaAllocationAed + emiratesIdMedicalAed + bankSupportFeeAed;
@@ -307,16 +307,16 @@ export function calculateSetupBreakdown(
     };
   }
 
-  // Free Zone
+  // Free Zone (covers all UAE Free Zone authorities)
   if (cleanVisas === 0) {
-    const totalAed = cms.zeroVisaPriceAed || 11500;
+    const totalAed = cms.zeroVisaPriceAed || 5000;
     const bankSupportFeeAed = 0;
-    const establishmentCardAed = 1500;
-    const licenseFeeAed = totalAed - establishmentCardAed;
+    const establishmentCardAed = 850;
+    const licenseFeeAed = Math.max(1000, totalAed - establishmentCardAed);
     return {
       packageId: 'zero-visa',
       packageName: 'Zero-Visa License',
-      authority: 'Meydan / RAKEZ Free Zone',
+      authority: 'All UAE Free Zone Authorities',
       licenseFeeAed,
       establishmentCardAed,
       visaAllocationAed: 0,
@@ -327,20 +327,20 @@ export function calculateSetupBreakdown(
     };
   }
 
-  const baseOneVisa = cms.oneVisaPriceAed || 17900;
+  const baseOneVisa = cms.oneVisaPriceAed || 10900;
   const extraVisas = Math.max(0, cleanVisas - 1);
-  const establishmentCardAed = 1850;
-  const visaAllocationAed = 3200 + extraVisas * 3950;
-  const emiratesIdMedicalAed = cleanVisas * 1350;
+  const establishmentCardAed = 1250;
+  const visaAllocationAed = 2400 + extraVisas * 2950;
+  const emiratesIdMedicalAed = cleanVisas * 950;
   const bankSupportFeeAed = 0; // Included complimentary in 1-Visa All-Inclusive
-  const licenseFeeAed = Math.max(8500, baseOneVisa - establishmentCardAed - 3200 - 1350);
+  const licenseFeeAed = Math.max(4150, baseOneVisa - establishmentCardAed - 2400 - 950);
   const totalAed =
     licenseFeeAed + establishmentCardAed + visaAllocationAed + emiratesIdMedicalAed + bankSupportFeeAed;
 
   return {
     packageId: cleanVisas === 1 ? 'one-visa' : 'freezone-multi-visa',
     packageName: cleanVisas === 1 ? '1-Visa All-Inclusive' : `Free Zone (${cleanVisas}-Visa)`,
-    authority: 'Meydan / IFZA Free Zone',
+    authority: 'All UAE Free Zone Authorities',
     licenseFeeAed,
     establishmentCardAed,
     visaAllocationAed,
@@ -355,29 +355,29 @@ export const DMCC_BOOKLET_CATEGORIES = [
   {
     group: 'Business Centres & Workspaces',
     items: [
-      { name: 'Flexi Desks', offerAed: 15000, standardAed: 16000, detail: 'Up to 3 Visas · Annual' },
-      { name: 'Co-Working Desks', offerAed: 18000, standardAed: 19000, detail: 'Up to 3 Visas · Annual' },
-      { name: 'Serviced Desks', offerAed: 24000, standardAed: 25000, detail: 'Up to 3 Visas · Annual' },
-      { name: 'Serviced Offices', offerAed: 34000, standardAed: 35000, detail: '4–8 Visas · Annual' },
+      { name: 'Flexi Desks', offerAed: 5000, standardAed: 15000, detail: 'Up to 3 Visas · Annual' },
+      { name: 'Co-Working Desks', offerAed: 8500, standardAed: 18000, detail: 'Up to 3 Visas · Annual' },
+      { name: 'Serviced Desks', offerAed: 12000, standardAed: 24000, detail: 'Up to 3 Visas · Annual' },
+      { name: 'Serviced Offices', offerAed: 18000, standardAed: 34000, detail: '4–8 Visas · Annual' },
     ],
   },
   {
     group: 'Premium Offices & Towers',
     items: [
-      { name: 'Almas Tower Premium Offices', offerAed: 77000, standardAed: 78000, detail: '88–323 Sq.ft · 3–6 Visas' },
-      { name: 'Silver Tower Premium Offices', offerAed: 49000, standardAed: 50000, detail: '140–172 Sq.ft · 3–6 Visas' },
-      { name: 'Detached Premium Offices', offerAed: 49000, standardAed: 50000, detail: '137–552 Sq.ft · 3–6 Visas' },
-      { name: 'J&G Premium & Fitted Offices', offerAed: 34000, standardAed: 35000, detail: '110–360 Sq.ft · 3–6 Visas' },
+      { name: 'Almas Tower Premium Offices', offerAed: 45000, standardAed: 77000, detail: '88–323 Sq.ft · 3–6 Visas' },
+      { name: 'Silver Tower Premium Offices', offerAed: 28000, standardAed: 49000, detail: '140–172 Sq.ft · 3–6 Visas' },
+      { name: 'Detached Premium Offices', offerAed: 28000, standardAed: 49000, detail: '137–552 Sq.ft · 3–6 Visas' },
+      { name: 'J&G Premium & Fitted Offices', offerAed: 19000, standardAed: 34000, detail: '110–360 Sq.ft · 3–6 Visas' },
     ],
   },
   {
     group: 'Permits & Residency Visas',
     items: [
-      { name: 'Office Sharing Permit (Annual)', offerAed: 1515, standardAed: 2515, detail: 'Group / common shareholding' },
-      { name: 'Dual Licence Office Permit (Annual)', offerAed: 4000, standardAed: 5000, detail: 'Operate DET Mainland from FZ' },
-      { name: '1-Year Residency Visa', offerAed: 1237, standardAed: 2237, detail: 'Outside UAE entry' },
-      { name: '2-Year Residency Visa (Standard)', offerAed: 1973, standardAed: 2973, detail: 'Outside UAE entry' },
-      { name: '2-Year Visa (50+ / 100+ / 200+ Bulk)', offerAed: 898, standardAed: 1898, detail: 'From AED 898 – AED 1,276' },
+      { name: 'Office Sharing Permit (Annual)', offerAed: 950, standardAed: 1515, detail: 'Group / common shareholding' },
+      { name: 'Dual Licence Office Permit (Annual)', offerAed: 2500, standardAed: 4000, detail: 'Operate DET Mainland from FZ' },
+      { name: '1-Year Residency Visa', offerAed: 950, standardAed: 1950, detail: 'Outside UAE entry' },
+      { name: '2-Year Residency Visa (Standard)', offerAed: 1450, standardAed: 2450, detail: 'Outside UAE entry' },
+      { name: '2-Year Visa (50+ / 100+ / 200+ Bulk)', offerAed: 650, standardAed: 1650, detail: 'From AED 650 – AED 990' },
     ],
   },
 ];

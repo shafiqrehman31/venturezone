@@ -38,6 +38,7 @@ import type {
   OrderStatusPublic,
 } from '../types/domain';
 import { CostCalculatorCard } from './CostCalculatorCard';
+import { ContactPage } from './ContactPage';
 import { HeroDubaiBackdropSvg } from './HeroDubaiBackdropSvg';
 import { LegalPageView, isLegalSlug } from './LegalPages';
 import { PartnerLogos } from './PartnerLogos';
@@ -120,6 +121,14 @@ export function LandingPage() {
         if (snap.exists()) {
           const data = snap.data() as CmsLandingConfig;
           const isLegacySeed = !data.siteName || data.siteName === 'Meridian Setup';
+          const legacyZero = [12500, 11500].includes(data.zeroVisaPriceAed);
+          const legacyOne = [18900, 17900].includes(data.oneVisaPriceAed);
+          const legacyMainland = [24500, 23500].includes(data.mainlandPriceAed);
+          const legacyPromo =
+            !data.promoNotice ||
+            data.promoNotice.startsWith('Q4 Allocation Open') ||
+            data.promoNotice.startsWith('Special Offer · AED 1,000 Off');
+
           setCms({
             heroHeadline: data.heroHeadline || DEFAULT_CMS_LANDING.heroHeadline,
             heroSubheadline: data.heroSubheadline || DEFAULT_CMS_LANDING.heroSubheadline,
@@ -127,22 +136,18 @@ export function LandingPage() {
             phoneDisplay: DEFAULT_CMS_LANDING.phoneDisplay,
             googleRatingScore: data.googleRatingScore || DEFAULT_CMS_LANDING.googleRatingScore,
             googleReviewCount: data.googleReviewCount || DEFAULT_CMS_LANDING.googleReviewCount,
-            zeroVisaPriceAed:
-              isLegacySeed && data.zeroVisaPriceAed === 12500
-                ? 11500
-                : data.zeroVisaPriceAed || DEFAULT_CMS_LANDING.zeroVisaPriceAed,
-            oneVisaPriceAed:
-              isLegacySeed && data.oneVisaPriceAed === 18900
-                ? 17900
-                : data.oneVisaPriceAed || DEFAULT_CMS_LANDING.oneVisaPriceAed,
-            mainlandPriceAed:
-              isLegacySeed && data.mainlandPriceAed === 24500
-                ? 23500
-                : data.mainlandPriceAed || DEFAULT_CMS_LANDING.mainlandPriceAed,
-            promoNotice:
-              isLegacySeed && data.promoNotice?.startsWith('Q4 Allocation Open')
-                ? DEFAULT_CMS_LANDING.promoNotice
-                : data.promoNotice ?? DEFAULT_CMS_LANDING.promoNotice,
+            zeroVisaPriceAed: legacyZero
+              ? DEFAULT_CMS_LANDING.zeroVisaPriceAed
+              : data.zeroVisaPriceAed || DEFAULT_CMS_LANDING.zeroVisaPriceAed,
+            oneVisaPriceAed: legacyOne
+              ? DEFAULT_CMS_LANDING.oneVisaPriceAed
+              : data.oneVisaPriceAed || DEFAULT_CMS_LANDING.oneVisaPriceAed,
+            mainlandPriceAed: legacyMainland
+              ? DEFAULT_CMS_LANDING.mainlandPriceAed
+              : data.mainlandPriceAed || DEFAULT_CMS_LANDING.mainlandPriceAed,
+            promoNotice: legacyPromo
+              ? DEFAULT_CMS_LANDING.promoNotice
+              : data.promoNotice ?? DEFAULT_CMS_LANDING.promoNotice,
             siteName: isLegacySeed ? DEFAULT_CMS_LANDING.siteName : data.siteName,
             logoDataUrl: data.logoDataUrl || DEFAULT_CMS_LANDING.logoDataUrl,
             footerLogoDataUrl: data.footerLogoDataUrl || DEFAULT_CMS_LANDING.footerLogoDataUrl,
@@ -309,7 +314,7 @@ export function LandingPage() {
       visaCount: 0,
       popular: false,
       features: [
-        '100% Foreign Ownership (Meydan / RAKEZ)',
+        '100% Foreign Ownership (All UAE Free Zones)',
         'Digital Trade License in 48 Hours',
         '3 Business Activities Included',
         'Corporate Bank Account Guidance',
@@ -359,7 +364,8 @@ export function LandingPage() {
     currentSlug !== 'free-zones' &&
     currentSlug !== 'mainland' &&
     currentSlug !== 'banking' &&
-    currentSlug !== 'guides'
+    currentSlug !== 'guides' &&
+    currentSlug !== 'contact'
       ? findMenuItem(currentSlug)
       : undefined;
 
@@ -370,7 +376,8 @@ export function LandingPage() {
       currentSlug !== 'free-zones' &&
       currentSlug !== 'mainland' &&
       currentSlug !== 'banking' &&
-      currentSlug !== 'guides');
+      currentSlug !== 'guides' &&
+      currentSlug !== 'contact');
 
   const resolvedHeroHeadline =
     homeMenuItem?.pageTitle &&
@@ -393,7 +400,6 @@ export function LandingPage() {
         currentSlug={isHomeRoute ? 'home' : currentSlug}
         navItems={navItems}
         onNavigate={navigatePage}
-        whatsappNumber={cms.whatsappNumber}
         logoDataUrl={cms.logoDataUrl}
         siteName={cms.siteName}
       />
@@ -406,6 +412,12 @@ export function LandingPage() {
             onNavigate={navigatePage}
             onStartQuote={selectPackageAndScroll}
           />
+        </main>
+      )}
+
+      {currentSlug === 'contact' && (
+        <main>
+          <ContactPage cms={cms} onStartQuote={selectPackageAndScroll} />
         </main>
       )}
 
@@ -544,7 +556,7 @@ export function LandingPage() {
                           ) : (
                             <FileDown className="h-3.5 w-3.5" />
                           )}
-                          <span>{downloadingBooklet ? 'Preparing PDF...' : 'Proposal Booklet (PDF)'}</span>
+                          <span>{downloadingBooklet ? 'Preparing PDF...' : 'Download Company Profile'}</span>
                         </button>
                         <button
                           type="button"
@@ -590,7 +602,7 @@ export function LandingPage() {
                 Transparent UAE Formation Packages
               </h2>
               <p className="mt-3 text-base text-slate-600">
-                All government fees, establishment cards, and compliance checks itemized in AED — AED 1,000 reduced across every category.
+                All government fees, establishment cards, and compliance checks itemized in AED — lowest market pricing starting from AED 5,000.
               </p>
               <div className="mt-4">
                 <button
@@ -605,9 +617,7 @@ export function LandingPage() {
                     <FileDown className="h-4 w-4 text-[#00b294]" />
                   )}
                   <span>
-                    {downloadingBooklet
-                      ? 'Preparing Booklet PDF...'
-                      : 'Download 2026 Price List & Proposal Booklet (PDF)'}
+                    {downloadingBooklet ? 'Preparing PDF...' : 'Download Company Profile'}
                   </span>
                 </button>
                 {bookletError && (
@@ -706,7 +716,7 @@ export function LandingPage() {
                     Free Zone vs. Dubai Mainland LLC
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                    Compare Meydan, IFZA, RAKEZ, and Dubai Economy Mainland licenses to match your
+                    Compare all UAE Free Zone authorities and Dubai Economy Mainland licenses to match your
                     client invoicing, visa quota, and tax structure.
                   </p>
                   <div className="mt-5 flex flex-wrap gap-3">
