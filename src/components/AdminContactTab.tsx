@@ -1,527 +1,571 @@
 import { useState } from 'react';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { deleteDoc, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import {
-  ArrowRight,
+  Check,
   CheckCircle2,
-  FileDown,
-  Globe2,
+  Copy,
+  Download,
   Loader2,
   Mail,
-  MessageCircle,
   Paperclip,
-  ShieldCheck,
+  Search,
+  Send,
+  Trash2,
+  X,
 } from 'lucide-react';
-import { COUNTRY_CODES, detectDefaultCountryCode } from '../data/defaults';
-import { downloadProposalBooklet } from '../lib/downloadBooklet';
 import { OperationType, db, handleFirestoreError } from '../lib/firebase';
 import { safeReadJson } from '../lib/safeJson';
 import type {
-  CmsLandingConfig,
   ContactEmailStatus,
-  ContactJurisdiction,
+  ContactInquiry,
+  ContactInquiryStatus,
 } from '../types/domain';
 
-interface ContactPageProps {
-  cms: Omit<CmsLandingConfig, 'updatedAt'>;
-  onStartQuote: (jurisdiction: 'Free Zone' | 'Mainland', visaCount: number) => void;
+interface AdminContactTabProps {
+  inquiries: ContactInquiry[];
 }
 
-const SERVICE_OPTIONS = [
-  '0-Visa UAE Free Zone License (AED 5,999 — Gov AED 5,200 + Service AED 799)',
-  '1-Visa Free Zone All-Inclusive (AED 10,500 — Gov AED 8,750 + Service AED 1,750)',
-  'Dubai Mainland Instant Setup DET (AED 10,999 — Gov AED 9,199 + Service AED 1,800)',
-  'Corporate Bank KYC Pre-Vetting & Onboarding Coordination',
-  'Flexi Desk / Office & Multi-Visa Packages',
+const INQUIRY_STATUS_OPTIONS: ContactInquiryStatus[] = [
+  'New',
+  'Proposal Sent',
+  'Contacted',
+  'Closed',
 ];
 
-interface ProposalPreviewState {
-  inquiryId: string;
-  toEmail: string;
-  recipientName: string;
-  subject: string;
-  bodyText: string;
-  attachmentName: string;
-  emailStatus: ContactEmailStatus;
-  emailNote: string;
+function buildEmailBodyText(inq: ContactInquiry): string {
+  const fullPhone = `${inq.countryCode} ${inq.whatsappNumber}`.trim();
+  return [
+    `Dear ${inq.fullName},`,
+    ``,
+    `Thank you for contacting venturezoneuae.com regarding ${inq.serviceInterest} (${inq.jurisdiction}).`,
+    ``,
+    `Attached to this email is our Company Profile & Transparent Pricing Proposal (venturezoneuae-company-profile.pdf), covering all UAE Free Zone authorities and Dubai Mainland (DET) with itemized Authority Fees vs. Venture Zone Service Fees:`,
+    ``,
+    `- 0-Visa UAE Free Zone License: AED 5,999 (Authority/Gov AED 5,200 + Venture Zone Service AED 799)`,
+    `- 1-Visa Free Zone (All-Inclusive): AED 10,500 (Authority/Gov AED 8,750 + Venture Zone Service AED 1,750)`,
+    `- Dubai Mainland Instant Setup (DET): AED 10,999 (Authority/Gov AED 9,199 + Venture Zone Service AED 1,800)`,
+    ``,
+    `Your Submitted Request Summary:`,
+    `- Name: ${inq.fullName}`,
+    `- Email: ${inq.email}`,
+    `- WhatsApp: ${fullPhone}`,
+    `- Jurisdiction: ${inq.jurisdiction}`,
+    `- Service Interest: ${inq.serviceInterest}`,
+    ...(inq.message ? [`- Notes: ${inq.message}`] : []),
+    ``,
+    `A senior UAE corporate formation advisor will review your preferred activity and reach out shortly with tailored authority recommendations.`,
+    ``,
+    `Best regards,`,
+    `Venture Zone Corporate Advisory Desk`,
+    `Email: info@venturezoneuae.com`,
+    `Web: https://venturezoneuae.com`,
+  ].join('\n');
 }
 
-export function ContactPage({ cms, onStartQuote }: ContactPageProps) {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [countryCode, setCountryCode] = useState(() => detectDefaultCountryCode());
-  const [whatsappNumber, setWhatsappNumber] = useState('');
-  const [jurisdiction, setJurisdiction] = useState<ContactJurisdiction>('All UAE Free Zones');
-  const [serviceInterest, setServiceInterest] = useState(SERVICE_OPTIONS[0]);
-  const [message, setMessage] = useState('');
+export function AdminContactTab({ inquiries }: AdminContactTabProps) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [selectedInquiry, setSelectedInquiry] = useState<ContactInquiry | null>(null);
+  const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
+  const [downloadingEmlId, setDownloadingEmlId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [feedbackBanner, setFeedbackBanner] = useState<{
+    type: 'success' | 'info' | 'error';
+    text: string;
+  } | null>(null);
 
-  const [submitting, setSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [downloadingProfile, setDownloadingProfile] = useState(false);
-  const [preview, setPreview] = useState<ProposalPreviewState | null>(null);
+  const filtered = inquiries.filter((inq) => {
+    const q = searchTerm.trim().toLowerCase();
+    const matchesSearch =
+      !q ||
+      inq.fullName.toLowerCase().includes(q) ||
+      inq.email.toLowerCase().includes(q) ||
+      inq.whatsappNumber.includes(q) ||
+      inq.serviceInterest.toLowerCase().includes(q);
+    const matchesStatus = statusFilter === 'ALL' || inq.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
-  const rawSite = cms.siteName?.trim();
-  const brandName = !rawSite || rawSite === 'Meridian Setup' ? 'venturezoneuae.com' : rawSite;
-  const cleanWaDigits = cms.whatsappNumber.replace(/[^\d]/g, '');
-
-  async function handleDownloadCompanyProfile() {
-    if (downloadingProfile) return;
-    setDownloadingProfile(true);
+  async function handleStatusChange(inq: ContactInquiry, nextStatus: ContactInquiryStatus) {
     try {
-      await downloadProposalBooklet();
-    } finally {
-      setDownloadingProfile(false);
+      await updateDoc(doc(db, 'contactInquiries', inq.id), {
+        status: nextStatus,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `contactInquiries/${inq.id}`);
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setErrorMsg('');
-
-    const trimmedName = fullName.trim();
-    const trimmedEmail = email.trim();
-    const cleanedPhone = whatsappNumber.replace(/[^\d]/g, '');
-
-    if (trimmedName.length < 2) {
-      setErrorMsg('Please enter your full name.');
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      setErrorMsg('Please enter a valid email address so we can send your proposal.');
-      return;
-    }
-    if (cleanedPhone.length < 6 || cleanedPhone.length > 15) {
-      setErrorMsg('Please enter a valid WhatsApp number (6–15 digits).');
-      return;
-    }
-
-    setSubmitting(true);
-    const inquiryId = `inq_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-
-    let emailStatus: ContactEmailStatus = 'template_ready';
-    let emailSubject = `Your UAE Business Setup Proposal & Company Profile — ${jurisdiction}`;
-    let emailNote = 'Proposal template prepared with attached Company Profile PDF.';
-    let templateBody = '';
-    let attachmentName = 'venturezoneuae-company-profile.pdf';
-
+  async function handleSendProposalEmail(inq: ContactInquiry) {
+    setSendingEmailId(inq.id);
+    setFeedbackBanner(null);
     try {
-      const emailRes = await fetch('/api/contact/send-proposal', {
+      const res = await fetch('/api/contact/send-proposal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fullName: trimmedName,
-          email: trimmedEmail,
-          countryCode,
-          whatsappNumber: cleanedPhone,
-          jurisdiction,
-          serviceInterest,
-          message: message.trim(),
+          fullName: inq.fullName,
+          email: inq.email,
+          countryCode: inq.countryCode,
+          whatsappNumber: inq.whatsappNumber,
+          jurisdiction: inq.jurisdiction,
+          serviceInterest: inq.serviceInterest,
+          message: inq.message || '',
         }),
       });
-      const parsedEmail = await safeReadJson<{
+      const parsed = await safeReadJson<{
         emailStatus?: ContactEmailStatus;
         emailNote?: string;
-        template?: {
-          subject: string;
-          toEmail: string;
-          recipientName: string;
-          bodyText: string;
-          attachmentName: string;
-        };
-      }>(emailRes);
-      const json = parsedEmail.data;
-      if (json?.emailStatus) {
-        emailStatus = json.emailStatus;
-      }
-      if (json?.emailNote) {
-        emailNote = json.emailNote;
-      }
-      if (json?.template) {
-        emailSubject = json.template.subject;
-        templateBody = json.template.bodyText;
-        attachmentName = json.template.attachmentName;
-      }
-    } catch {
-      emailStatus = 'template_ready';
-    }
+        template?: { subject: string };
+      }>(res);
+      const json = parsed.data;
 
-    const inquiryStatus = emailStatus === 'sent' ? 'Proposal Sent' : 'New';
+      const nextEmailStatus: ContactEmailStatus = json?.emailStatus || 'template_ready';
+      const nextNote = json?.emailNote || parsed.errorMessage || 'Proposal template prepared.';
+      const nextSubject =
+        json?.template?.subject ||
+        inq.emailSubject ||
+        `Your UAE Business Setup Proposal & Company Profile — ${inq.jurisdiction}`;
 
-    try {
-      await setDoc(doc(db, 'contactInquiries', inquiryId), {
-        id: inquiryId,
-        fullName: trimmedName.slice(0, 120),
-        email: trimmedEmail.slice(0, 200),
-        countryCode: countryCode.slice(0, 8),
-        whatsappNumber: cleanedPhone.slice(0, 32),
-        jurisdiction,
-        serviceInterest: serviceInterest.slice(0, 120),
-        ...(message.trim() ? { message: message.trim().slice(0, 2000) } : {}),
-        status: inquiryStatus,
-        emailStatus,
-        emailSubject: emailSubject.slice(0, 200),
-        emailNote: emailNote.slice(0, 300),
-        createdAt: serverTimestamp(),
+      await updateDoc(doc(db, 'contactInquiries', inq.id), {
+        emailStatus: nextEmailStatus,
+        emailSubject: nextSubject.slice(0, 200),
+        emailNote: nextNote.slice(0, 300),
+        ...(nextEmailStatus === 'sent' ? { status: 'Proposal Sent' } : {}),
         updatedAt: serverTimestamp(),
       });
 
-      setPreview({
-        inquiryId,
-        toEmail: trimmedEmail,
-        recipientName: trimmedName,
-        subject: emailSubject,
-        bodyText: templateBody,
-        attachmentName,
-        emailStatus,
-        emailNote,
-      });
-
-      setFullName('');
-      setEmail('');
-      setWhatsappNumber('');
-      setMessage('');
-    } catch (err) {
-      try {
-        handleFirestoreError(err, OperationType.WRITE, `contactInquiries/${inquiryId}`);
-      } catch {
-        setErrorMsg('Unable to submit your message right now. Please try again shortly.');
+      if (selectedInquiry?.id === inq.id) {
+        setSelectedInquiry({
+          ...inq,
+          emailStatus: nextEmailStatus,
+          emailNote: nextNote,
+          emailSubject: nextSubject,
+          status: nextEmailStatus === 'sent' ? 'Proposal Sent' : inq.status,
+        });
       }
+
+      setFeedbackBanner({
+        type: nextEmailStatus === 'sent' ? 'success' : nextEmailStatus === 'failed' ? 'error' : 'info',
+        text:
+          nextEmailStatus === 'template_ready'
+            ? 'RESEND_API_KEY is not configured yet—use "Download .EML + Attached PDF" below to open and send directly from your email client.'
+            : nextNote,
+      });
+    } catch {
+      setFeedbackBanner({
+        type: 'error',
+        text: 'Unable to dispatch email right now. Use "Download .EML + Attached PDF" instead.',
+      });
     } finally {
-      setSubmitting(false);
+      setSendingEmailId(null);
+    }
+  }
+
+  async function handleDownloadEml(inq: ContactInquiry) {
+    setDownloadingEmlId(inq.id);
+    try {
+      const res = await fetch('/api/contact/proposal-eml', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: inq.fullName,
+          email: inq.email,
+          countryCode: inq.countryCode,
+          whatsappNumber: inq.whatsappNumber,
+          jurisdiction: inq.jurisdiction,
+          serviceInterest: inq.serviceInterest,
+          message: inq.message || '',
+        }),
+      });
+      if (!res.ok) throw new Error('Unable to generate EML draft');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `proposal-${inq.fullName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.eml`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } finally {
+      setDownloadingEmlId(null);
+    }
+  }
+
+  async function handleCopyEmailBody(inq: ContactInquiry) {
+    const text = buildEmailBodyText(inq);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(inq.id);
+      window.setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      // Clipboard API unavailable
+    }
+  }
+
+  async function handleDelete(id: string) {
+    try {
+      await deleteDoc(doc(db, 'contactInquiries', id));
+      setConfirmDeleteId(null);
+      if (selectedInquiry?.id === id) setSelectedInquiry(null);
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, `contactInquiries/${id}`);
     }
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-        {/* Left Info Panel */}
-        <div className="space-y-6 lg:col-span-5">
-          <div className="spatial-glass rounded-3xl p-7">
-            <p className="text-xs font-bold uppercase tracking-wider text-[#ff0031]">
-              Contact Our Advisory Desk
-            </p>
-            <h1
-              className="mt-2 font-display text-3xl font-extrabold tracking-tight text-[#111827]"
-              style={{ textWrap: 'balance' }}
-            >
-              Get Your Custom UAE Setup Proposal
-            </h1>
-            <p className="mt-3 text-sm leading-relaxed text-slate-600">
-              We incorporate companies across <strong>all UAE Free Zone authorities</strong> (RAKEZ,
-              SHAMS, Ajman, Meydan, IFZA, DMCC &amp; more) and <strong>Dubai Mainland (DET)</strong>{' '}
-              with lowest market pricing starting from{' '}
-              <span className="font-mono font-bold text-[#ff0031]">
-                AED {cms.zeroVisaPriceAed.toLocaleString()}
-              </span>
-              .
-            </p>
+    <div className="space-y-6">
+      {/* Toolbar */}
+      <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-center">
+        <div>
+          <h2 className="font-display text-base font-bold text-[#111827]">
+            Contact Us Submissions &amp; Proposal Email Templates
+          </h2>
+          <p className="mt-1 text-xs text-slate-600">
+            Every website inquiry saves here with a pre-addressed email template and attached{' '}
+            <span className="font-mono font-semibold text-[#111827]">
+              venturezoneuae-company-profile.pdf
+            </span>
+            .
+          </p>
+        </div>
 
-            <div className="mt-6 space-y-4 border-t border-slate-200/80 pt-6 text-sm">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#ff0031]/10 text-[#ff0031]">
-                  <Mail className="h-5 w-5" />
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search name or email..."
+              className="min-h-[40px] rounded-lg border border-slate-300 bg-[#FAFAFB] pl-9 pr-3 text-xs focus:border-[#ff0031] focus:bg-white focus:outline-none"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            aria-label="Filter contact inquiries by status"
+            className="min-h-[40px] rounded-lg border border-slate-300 bg-white px-3 text-xs font-semibold text-[#111827]"
+          >
+            <option value="ALL">All Statuses ({inquiries.length})</option>
+            {INQUIRY_STATUS_OPTIONS.map((st) => (
+              <option key={st} value={st}>
+                {st}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-left text-xs">
+            <thead>
+              <tr className="border-b border-slate-200 bg-[#FAFAFB] text-slate-500">
+                <th className="px-4 py-3 font-semibold">Applicant</th>
+                <th className="px-4 py-3 font-semibold">Jurisdiction &amp; Interest</th>
+                <th className="px-4 py-3 font-semibold">Message</th>
+                <th className="px-4 py-3 font-semibold">Email Proposal</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 text-right font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-10 text-center text-slate-500">
+                    No Contact Us inquiries match your filter yet. Submissions from the Contact Us
+                    page appear here in real time.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((inq) => (
+                  <tr key={inq.id} className="hover:bg-[#FAFAFB]">
+                    <td className="px-4 py-3.5 align-top">
+                      <div className="font-bold text-[#111827]">{inq.fullName}</div>
+                      <div className="font-mono text-[11px] text-[#008A72]">{inq.email}</div>
+                      <div className="mt-0.5 font-mono text-[11px] text-slate-500">
+                        {inq.countryCode} {inq.whatsappNumber}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3.5 align-top">
+                      <div className="font-semibold text-[#111827]">{inq.jurisdiction}</div>
+                      <div className="mt-0.5 max-w-[210px] text-[11px] text-slate-600">
+                        {inq.serviceInterest}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3.5 align-top">
+                      <p className="max-w-[220px] whitespace-pre-line text-[11px] text-slate-600">
+                        {inq.message || '—'}
+                      </p>
+                    </td>
+                    <td className="px-4 py-3.5 align-top">
+                      {inq.emailStatus === 'sent' ? (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-[#00b294]/15 px-2 py-1 font-semibold text-[#008A72]">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          <span>Sent w/ PDF</span>
+                        </span>
+                      ) : inq.emailStatus === 'failed' ? (
+                        <span className="inline-flex rounded-md bg-red-100 px-2 py-1 font-semibold text-red-700">
+                          Send Failed
+                        </span>
+                      ) : (
+                        <span className="inline-flex rounded-md bg-amber-100 px-2 py-1 font-semibold text-amber-800">
+                          Template Ready
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3.5 align-top">
+                      <select
+                        value={inq.status}
+                        aria-label={`Update status for ${inq.fullName}`}
+                        onChange={(e) =>
+                          handleStatusChange(inq, e.target.value as ContactInquiryStatus)
+                        }
+                        className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-[#111827]"
+                      >
+                        {INQUIRY_STATUS_OPTIONS.map((st) => (
+                          <option key={st} value={st}>
+                            {st}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3.5 text-right align-top">
+                      <div className="inline-flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFeedbackBanner(null);
+                            setSelectedInquiry(inq);
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-[#111827] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#ff0031]"
+                        >
+                          <Mail className="h-3.5 w-3.5" />
+                          <span>Email Template</span>
+                        </button>
+
+                        {confirmDeleteId === inq.id ? (
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(inq.id)}
+                            className="rounded-lg bg-red-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-red-700"
+                          >
+                            Confirm
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteId(inq.id)}
+                            aria-label={`Delete inquiry from ${inq.fullName}`}
+                            className="rounded-lg border border-slate-200 p-1.5 text-slate-400 hover:border-red-200 hover:text-red-600"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Email Template + Attached Proposal Modal */}
+      {selectedInquiry && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#111827]/60 p-4 backdrop-blur-sm">
+          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 bg-[#111827] px-6 py-4 text-white">
+              <div>
+                <h3 className="font-display text-base font-bold">
+                  Proposal Email Template With Attached Company Profile
+                </h3>
+                <p className="text-xs text-slate-300">
+                  Addressed directly to {selectedInquiry.fullName} ({selectedInquiry.email})
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedInquiry(null)}
+                aria-label="Close email template modal"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 text-white hover:bg-white/10"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 space-y-4 overflow-y-auto p-6 text-xs">
+              {feedbackBanner && (
+                <div
+                  className={`rounded-xl border px-4 py-3 font-medium ${
+                    feedbackBanner.type === 'success'
+                      ? 'border-[#00b294]/40 bg-[#00b294]/10 text-[#008A72]'
+                      : feedbackBanner.type === 'error'
+                        ? 'border-red-200 bg-red-50 text-red-700'
+                        : 'border-amber-200 bg-amber-50 text-amber-900'
+                  }`}
+                >
+                  {feedbackBanner.text}
+                </div>
+              )}
+
+              {/* Email Headers */}
+              <div className="space-y-2 rounded-xl border border-slate-200 bg-[#FAFAFB] p-4">
+                <div>
+                  <span className="font-semibold text-slate-500">From:</span>{' '}
+                  <span className="font-mono text-[#111827]">
+                    Venture Zone UAE &lt;info@venturezoneuae.com&gt;
+                  </span>
                 </div>
                 <div>
-                  <div className="font-bold text-[#111827]">Direct Proposal Email</div>
-                  <div className="text-xs text-slate-600">info@venturezoneuae.com</div>
+                  <span className="font-semibold text-slate-500">To:</span>{' '}
+                  <span className="font-mono font-bold text-[#008A72]">
+                    {selectedInquiry.fullName} &lt;{selectedInquiry.email}&gt;
+                  </span>
+                </div>
+                <div>
+                  <span className="font-semibold text-slate-500">Subject:</span>{' '}
+                  <span className="font-bold text-[#111827]">
+                    {selectedInquiry.emailSubject ||
+                      `Your UAE Business Setup Proposal & Company Profile — ${selectedInquiry.jurisdiction}`}
+                  </span>
+                </div>
+                <div className="pt-1">
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#ff0031]/30 bg-[#FFF5F7] px-3 py-1.5 text-[11px] font-bold text-[#ff0031]">
+                    <Paperclip className="h-3.5 w-3.5" />
+                    <span>Attachment: venturezoneuae-company-profile.pdf (Attached)</span>
+                  </span>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#00b294]/15 text-[#008A72]">
-                  <Globe2 className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="font-bold text-[#111827]">All UAE Jurisdictions Covered</div>
-                  <div className="text-xs text-slate-600">
-                    Remote incorporation · 48h digital license · 0% personal tax
+              {/* Safe JSX Branded Email Preview */}
+              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                <div className="border-b-4 border-[#ff0031] bg-[#111827] px-5 py-4 text-white">
+                  <div className="font-display text-sm font-bold">venturezoneuae.com</div>
+                  <div className="text-[11px] font-bold text-[#00b294]">
+                    UAE COMPANY FORMATION PROPOSAL &amp; COMPANY PROFILE
                   </div>
                 </div>
-              </div>
+                <div className="space-y-3 p-5 text-slate-700">
+                  <p className="font-bold text-[#111827]">Dear {selectedInquiry.fullName},</p>
+                  <p className="leading-relaxed">
+                    Thank you for contacting <strong>venturezoneuae.com</strong> regarding{' '}
+                    <strong>{selectedInquiry.serviceInterest}</strong> ({selectedInquiry.jurisdiction}
+                    ). Please find attached our official{' '}
+                    <strong>Company Profile &amp; 2026 Pricing Proposal</strong> (
+                    <span className="font-mono">venturezoneuae-company-profile.pdf</span>).
+                  </p>
 
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-[#111827]">
-                  <Paperclip className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="font-bold text-[#111827]">Instant Proposal Email &amp; PDF</div>
-                  <div className="text-xs text-slate-600">
-                    Submitting prepares an email proposal to your inbox with our attached Company
-                    Profile PDF.
+                  <div className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-[#FAFAFB]">
+                    <div className="flex items-center justify-between px-4 py-2.5">
+                      <div>
+                        <div>0-Visa UAE Free Zone License</div>
+                        <div className="text-[10px] text-slate-500">
+                          Gov ~AED 5,200 + Service AED 799
+                        </div>
+                      </div>
+                      <span className="font-mono font-bold text-[#ff0031]">AED 5,999</span>
+                    </div>
+                    <div className="flex items-center justify-between px-4 py-2.5">
+                      <div>
+                        <div>1-Visa Free Zone (All-Inclusive)</div>
+                        <div className="text-[10px] text-slate-500">
+                          Gov ~AED 8,750 + Service AED 1,750
+                        </div>
+                      </div>
+                      <span className="font-mono font-bold text-[#ff0031]">AED 10,500</span>
+                    </div>
+                    <div className="flex items-center justify-between px-4 py-2.5">
+                      <div>
+                        <div>Dubai Mainland Instant Setup (DET)</div>
+                        <div className="text-[10px] text-slate-500">
+                          Gov ~AED 9,199 + Service AED 1,800
+                        </div>
+                      </div>
+                      <span className="font-mono font-bold text-[#ff0031]">AED 10,999</span>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border-l-4 border-[#00b294] bg-[#00b294]/[0.06] p-3 text-[#111827]">
+                    <div className="font-bold">Submitted Request Summary</div>
+                    <div>Email: {selectedInquiry.email}</div>
+                    <div>
+                      WhatsApp: {selectedInquiry.countryCode} {selectedInquiry.whatsappNumber}
+                    </div>
+                    <div>Jurisdiction: {selectedInquiry.jurisdiction}</div>
+                    <div>Service: {selectedInquiry.serviceInterest}</div>
+                    {selectedInquiry.message && <div>Notes: {selectedInquiry.message}</div>}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 space-y-2.5 border-t border-slate-200/80 pt-6">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 bg-[#FAFAFB] px-6 py-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={sendingEmailId === selectedInquiry.id}
+                  onClick={() => handleSendProposalEmail(selectedInquiry)}
+                  className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg bg-[#ff0031] px-4 text-xs font-bold text-white hover:bg-[#D90029] disabled:opacity-60"
+                >
+                  {sendingEmailId === selectedInquiry.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Send className="h-3.5 w-3.5" />
+                  )}
+                  <span>Send Proposal Email</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={downloadingEmlId === selectedInquiry.id}
+                  onClick={() => handleDownloadEml(selectedInquiry)}
+                  className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg bg-[#00b294] px-4 text-xs font-bold text-white hover:bg-[#00967C] disabled:opacity-60"
+                >
+                  {downloadingEmlId === selectedInquiry.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Download className="h-3.5 w-3.5" />
+                  )}
+                  <span>Download .EML + Attached PDF</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleCopyEmailBody(selectedInquiry)}
+                  className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 text-xs font-semibold text-[#111827] hover:border-[#00b294]"
+                >
+                  {copiedId === selectedInquiry.id ? (
+                    <>
+                      <Check className="h-3.5 w-3.5 text-[#008A72]" />
+                      <span>Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5" />
+                      <span>Copy Text</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
               <button
                 type="button"
-                disabled={downloadingProfile}
-                onClick={handleDownloadCompanyProfile}
-                className="flex min-h-[46px] w-full items-center justify-center gap-2 rounded-xl border border-[#111827] bg-white px-4 text-xs font-bold text-[#111827] transition-colors hover:border-[#00b294] hover:bg-[#00b294] hover:text-white disabled:opacity-60"
+                onClick={() => setSelectedInquiry(null)}
+                className="text-xs font-semibold text-slate-600 hover:text-[#111827]"
               >
-                {downloadingProfile ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <FileDown className="h-4 w-4" />
-                )}
-                <span>{downloadingProfile ? 'Preparing PDF...' : 'Download Process Details'}</span>
+                Close
               </button>
-
-              <a
-                href={`https://wa.me/${cleanWaDigits}?text=${encodeURIComponent(
-                  `Hello ${brandName}, I would like to discuss UAE company formation starting at AED ${cms.zeroVisaPriceAed.toLocaleString()}.`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex min-h-[46px] w-full items-center justify-center gap-2 rounded-xl bg-[#00b294] px-4 text-xs font-bold text-white transition-colors hover:bg-[#00967C]"
-              >
-                <MessageCircle className="h-4 w-4" />
-                <span>Chat on WhatsApp</span>
-              </a>
             </div>
           </div>
         </div>
-
-        {/* Right Form / Confirmation Column */}
-        <div className="lg:col-span-7">
-          {preview ? (
-            <div className="spatial-glass space-y-5 rounded-3xl p-7 sm:p-8">
-              <div className="flex items-start gap-3 rounded-2xl border border-[#00b294]/35 bg-[#00b294]/[0.08] p-4">
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#008A72]" />
-                <div>
-                  <div className="font-display text-base font-bold text-[#111827]">
-                    Thank You, {preview.recipientName} — Inquiry Logged
-                  </div>
-                  <p className="mt-1 text-xs text-slate-700">{preview.emailNote}</p>
-                </div>
-              </div>
-
-              {/* Proposal Email Preview Card */}
-              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                <div className="border-b border-slate-200 bg-[#FAFAFB] px-5 py-3.5 text-xs">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <span className="font-semibold text-slate-500">To:</span>{' '}
-                      <span className="font-mono font-bold text-[#111827]">{preview.toEmail}</span>
-                    </div>
-                    <span
-                      className={`rounded-md px-2 py-0.5 text-[11px] font-bold ${
-                        preview.emailStatus === 'sent'
-                          ? 'bg-[#00b294]/15 text-[#008A72]'
-                          : 'bg-amber-100 text-amber-800'
-                      }`}
-                    >
-                      {preview.emailStatus === 'sent'
-                        ? 'Email Sent with PDF'
-                        : 'Proposal Email Ready'}
-                    </span>
-                  </div>
-                  <div className="mt-1">
-                    <span className="font-semibold text-slate-500">Subject:</span>{' '}
-                    <span className="font-semibold text-[#111827]">{preview.subject}</span>
-                  </div>
-                  <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-[#ff0031]">
-                    <Paperclip className="h-3.5 w-3.5" />
-                    <span>Attached: {preview.attachmentName}</span>
-                  </div>
-                </div>
-
-                {preview.bodyText && (
-                  <pre className="max-h-72 overflow-y-auto whitespace-pre-wrap p-5 font-sans text-xs leading-relaxed text-slate-700">
-                    {preview.bodyText}
-                  </pre>
-                )}
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleDownloadCompanyProfile}
-                  className="inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-[#ff0031] px-5 text-xs font-bold text-white hover:bg-[#D90029]"
-                >
-                  <FileDown className="h-4 w-4" />
-                  <span>Download Process Details</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onStartQuote('Free Zone', 1)}
-                  className="inline-flex min-h-[46px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 text-xs font-bold text-[#111827] hover:border-[#00b294]"
-                >
-                  <span>Open Cost Calculator</span>
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPreview(null)}
-                  className="text-xs font-semibold text-slate-600 underline hover:text-[#111827]"
-                >
-                  Send another inquiry
-                </button>
-              </div>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="spatial-glass space-y-4 rounded-3xl p-7 sm:p-8">
-              <div>
-                <h2 className="font-display text-xl font-bold text-[#111827]">
-                  Request Company Profile &amp; Custom Quote
-                </h2>
-                <p className="mt-1 text-xs text-slate-500">
-                  Your details go straight to our advisor desk and prepare your personalized
-                  email proposal with our Company Profile PDF attached.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="contact-name" className="mb-1 block text-xs font-semibold text-[#1E293B]">
-                    Full Name
-                  </label>
-                  <input
-                    id="contact-name"
-                    type="text"
-                    required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g. Tariq Mahmood"
-                    className="min-h-[46px] w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-[#1E293B] focus:border-[#ff0031] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="contact-email" className="mb-1 block text-xs font-semibold text-[#1E293B]">
-                    Email Address (Proposal &amp; PDF Recipient)
-                  </label>
-                  <input
-                    id="contact-email"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="founder@company.com"
-                    className="min-h-[46px] w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-[#1E293B] focus:border-[#ff0031] focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="contact-phone" className="mb-1 block text-xs font-semibold text-[#1E293B]">
-                  WhatsApp Number
-                </label>
-                <div className="flex gap-2">
-                  <select
-                    aria-label="Country dial code"
-                    value={countryCode}
-                    onChange={(e) => setCountryCode(e.target.value)}
-                    className="min-h-[46px] w-32 shrink-0 rounded-xl border border-slate-300 bg-white px-2.5 font-mono text-xs text-[#1E293B] focus:border-[#ff0031] focus:outline-none"
-                  >
-                    {COUNTRY_CODES.map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    id="contact-phone"
-                    type="tel"
-                    required
-                    value={whatsappNumber}
-                    onChange={(e) => setWhatsappNumber(e.target.value)}
-                    placeholder="50 482 9100"
-                    className="min-h-[46px] w-full rounded-xl border border-slate-300 bg-white px-3.5 font-mono text-sm text-[#1E293B] focus:border-[#ff0031] focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-xs font-semibold text-[#1E293B]">
-                  Preferred Jurisdiction
-                </label>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                  {(['All UAE Free Zones', 'Dubai Mainland (DET)', 'Need Advice'] as ContactJurisdiction[]).map(
-                    (opt) => (
-                      <button
-                        key={opt}
-                        type="button"
-                        onClick={() => setJurisdiction(opt)}
-                        className={`min-h-[44px] rounded-xl border px-3 text-xs font-semibold transition-colors ${
-                          jurisdiction === opt
-                            ? 'border-[#111827] bg-[#111827] text-white'
-                            : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                        }`}
-                      >
-                        {opt}
-                      </button>
-                    )
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="contact-service" className="mb-1 block text-xs font-semibold text-[#1E293B]">
-                  Service / Package Interest
-                </label>
-                <select
-                  id="contact-service"
-                  value={serviceInterest}
-                  onChange={(e) => setServiceInterest(e.target.value)}
-                  className="min-h-[46px] w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-[#1E293B] focus:border-[#ff0031] focus:outline-none"
-                >
-                  {SERVICE_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="contact-message" className="mb-1 block text-xs font-semibold text-[#1E293B]">
-                  Business Activity &amp; Questions (Optional)
-                </label>
-                <textarea
-                  id="contact-message"
-                  rows={3}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Share your target activity, number of visas, or preferred UAE Free Zone..."
-                  className="w-full rounded-xl border border-slate-300 bg-white p-3.5 text-sm text-[#1E293B] focus:border-[#ff0031] focus:outline-none"
-                />
-              </div>
-
-              {errorMsg && (
-                <p className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-medium text-red-700">
-                  {errorMsg}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-[#ff0031] px-5 text-sm font-bold text-white transition-colors hover:bg-[#D90029] disabled:opacity-60"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Sending Inquiry &amp; Preparing Email Proposal...</span>
-                  </>
-                ) : (
-                  <>
-                    <Mail className="h-4 w-4" />
-                    <span>Send Inquiry &amp; Receive Proposal PDF</span>
-                  </>
-                )}
-              </button>
-
-              <div className="flex items-center gap-2 text-[11px] text-slate-500">
-                <ShieldCheck className="h-4 w-4 shrink-0 text-[#00b294]" />
-                <span>
-                  Covers all UAE Free Zone authorities &amp; Dubai Mainland · Zero hidden fees
-                </span>
-              </div>
-            </form>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
 }
