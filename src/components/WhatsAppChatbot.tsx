@@ -144,41 +144,32 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
         return;
       }
 
-      // If proxy/gateway returned HTML (e.g. <!doctype html>) or upstream timed out,
-      // deliver an immediate accurate UAE advisory reply instead of surfacing JSON parse errors.
-      if (parsed.isHtml || parsed.status >= 500 || !parsed.data?.error) {
-        const fallbackReply = buildWhatsAppFallbackReply(trimmed, {
-          brandName,
-          zeroVisaPriceAed: cms.zeroVisaPriceAed,
-          oneVisaPriceAed: cms.oneVisaPriceAed,
-          mainlandPriceAed: cms.mainlandPriceAed,
-        });
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `m_${Date.now()}`,
-            role: 'model',
-            text: fallbackReply,
-            time: nowTimeLabel(),
-          },
-        ]);
-        return;
-      }
-
-      throw new Error(parsed.errorMessage || parsed.data.error);
+      // Deliver immediate UAE formation guidance when static-hosted (e.g. GoDaddy cPanel),
+      // missing GEMINI_API_KEY, or experiencing transient backend/network issues.
+      const fallbackReply = buildWhatsAppFallbackReply(trimmed, {
+        brandName,
+        zeroVisaPriceAed: cms.zeroVisaPriceAed,
+        oneVisaPriceAed: cms.oneVisaPriceAed,
+        mainlandPriceAed: cms.mainlandPriceAed,
+      });
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `m_${Date.now()}`,
+          role: 'model',
+          text: fallbackReply,
+          time: nowTimeLabel(),
+        },
+      ]);
     } catch (err) {
       const clean = extractCleanErrorMessage(err);
-      if (
-        clean.includes('interrupted') ||
-        clean.toLowerCase().includes('failed to fetch') ||
-        clean.toLowerCase().includes('network')
-      ) {
-        const fallbackReply = buildWhatsAppFallbackReply(trimmed, {
-          brandName,
-          zeroVisaPriceAed: cms.zeroVisaPriceAed,
-          oneVisaPriceAed: cms.oneVisaPriceAed,
-          mainlandPriceAed: cms.mainlandPriceAed,
-        });
+      const fallbackReply = buildWhatsAppFallbackReply(trimmed, {
+        brandName,
+        zeroVisaPriceAed: cms.zeroVisaPriceAed,
+        oneVisaPriceAed: cms.oneVisaPriceAed,
+        mainlandPriceAed: cms.mainlandPriceAed,
+      });
+      if (clean) {
         setMessages((prev) => [
           ...prev,
           {
@@ -188,8 +179,6 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
             time: nowTimeLabel(),
           },
         ]);
-      } else {
-        setBotError(clean);
       }
     } finally {
       setSending(false);
