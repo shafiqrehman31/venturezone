@@ -552,34 +552,7 @@ export function LandingPage() {
                           </span>
                         </div>
                       </div>
-
-                      <div className="flex flex-wrap items-center gap-4">
-                        <button
-                          type="button"
-                          disabled={downloadingBooklet}
-                          onClick={handleDownloadBooklet}
-                          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#008A72] hover:text-[#00b294] disabled:opacity-60"
-                        >
-                          {downloadingBooklet ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : (
-                            <FileDown className="h-3.5 w-3.5" />
-                          )}
-                          <span>{downloadingBooklet ? 'Preparing PDF...' : 'Download Process Details'}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => navigatePage('free-zones')}
-                          className="inline-flex items-center gap-1 text-xs font-bold text-[#ff0031] hover:text-[#D90029]"
-                        >
-                          <span>Explore Free Zones</span>
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
                     </div>
-                    {bookletError && (
-                      <p className="mt-2 text-xs font-medium text-red-600">{bookletError}</p>
-                    )}
                   </div>
                 </div>
 
