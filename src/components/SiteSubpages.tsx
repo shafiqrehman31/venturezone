@@ -20,6 +20,7 @@ import {
 } from '../data/defaults';
 import { downloadProposalBooklet } from '../lib/downloadBooklet';
 import { OperationType, db, handleFirestoreError } from '../lib/firebase';
+import { safeReadJson } from '../lib/safeJson';
 import type {
   BlogPost,
   CmsLandingConfig,
@@ -648,12 +649,13 @@ export function GuidesContactPage({
           source: 'Website Consultation Desk',
         }),
       });
-      const json = (await res.json()) as {
+      const parsed = await safeReadJson<{
         syncStatus?: 'synced' | 'pending_config' | 'failed';
         pipedriveDealId?: string;
         pipedrivePersonId?: string;
-      };
-      if (json.syncStatus) {
+      }>(res);
+      const json = parsed.data;
+      if (json?.syncStatus) {
         pipedriveSyncStatus = json.syncStatus;
         pipedriveDealId = json.pipedriveDealId;
         pipedrivePersonId = json.pipedrivePersonId;

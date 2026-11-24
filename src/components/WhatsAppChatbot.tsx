@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { COUNTRY_CODES, detectDefaultCountryCode } from '../data/defaults';
 import { OperationType, db, handleFirestoreError } from '../lib/firebase';
+import { extractCleanErrorMessage, safeReadJson } from '../lib/safeJson';
+import { buildWhatsAppFallbackReply } from '../lib/whatsappFallback';
 import type { CmsLandingConfig, JurisdictionType } from '../types/domain';
 
 interface ChatMessage {
@@ -128,26 +130,67 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
         }),
       });
 
-      const data = (await res.json()) as { reply?: string; error?: string };
-      if (!res.ok || !data.reply) {
-        throw new Error(data.error || 'Assistant is temporarily unavailable.');
+      const parsed = await safeReadJson<{ reply?: string; error?: string }>(res);
+      if (parsed.ok && parsed.data?.reply) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `m_${Date.now()}`,
+            role: 'model',
+            text: parsed.data!.reply!,
+            time: nowTimeLabel(),
+          },
+        ]);
+        return;
       }
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `m_${Date.now()}`,
-          role: 'model',
-          text: data.reply!,
-          time: nowTimeLabel(),
-        },
-      ]);
+      // If proxy/gateway returned HTML (e.g. <!doctype html>) or upstream timed out,
+      // deliver an immediate accurate UAE advisory reply instead of surfacing JSON parse errors.
+      if (parsed.isHtml || parsed.status >= 500 || !parsed.data?.error) {
+        const fallbackReply = buildWhatsAppFallbackReply(trimmed, {
+          brandName,
+          zeroVisaPriceAed: cms.zeroVisaPriceAed,
+          oneVisaPriceAed: cms.oneVisaPriceAed,
+          mainlandPriceAed: cms.mainlandPriceAed,
+        });
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `m_${Date.now()}`,
+            role: 'model',
+            text: fallbackReply,
+            time: nowTimeLabel(),
+          },
+        ]);
+        return;
+      }
+
+      throw new Error(parsed.errorMessage || parsed.data.error);
     } catch (err) {
-      setBotError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to reach assistant. Tap "Live WhatsApp" below to chat with an advisor.'
-      );
+      const clean = extractCleanErrorMessage(err);
+      if (
+        clean.includes('interrupted') ||
+        clean.toLowerCase().includes('failed to fetch') ||
+        clean.toLowerCase().includes('network')
+      ) {
+        const fallbackReply = buildWhatsAppFallbackReply(trimmed, {
+          brandName,
+          zeroVisaPriceAed: cms.zeroVisaPriceAed,
+          oneVisaPriceAed: cms.oneVisaPriceAed,
+          mainlandPriceAed: cms.mainlandPriceAed,
+        });
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `m_${Date.now()}`,
+            role: 'model',
+            text: fallbackReply,
+            time: nowTimeLabel(),
+          },
+        ]);
+      } else {
+        setBotError(clean);
+      }
     } finally {
       setSending(false);
     }
@@ -199,12 +242,13 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
           source: 'WhatsApp AI Chatbot',
         }),
       });
-      const json = (await syncRes.json()) as {
+      const parsedSync = await safeReadJson<{
         syncStatus?: 'synced' | 'pending_config' | 'failed';
         pipedriveDealId?: string;
         pipedrivePersonId?: string;
-      };
-      if (json.syncStatus) {
+      }>(syncRes);
+      const json = parsedSync.data;
+      if (json?.syncStatus) {
         pipedriveSyncStatus = json.syncStatus;
         pipedriveDealId = json.pipedriveDealId;
         pipedrivePersonId = json.pipedrivePersonId;

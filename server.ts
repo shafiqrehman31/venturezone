@@ -188,6 +188,107 @@ interface ChatTurn {
   text: string;
 }
 
+function buildServerWhatsAppFallback(
+  userQuestion: string,
+  opts: {
+    brandName: string;
+    zeroPrice: string;
+    onePrice: string;
+    mainlandPrice: string;
+  }
+): string {
+  const q = userQuestion.toLowerCase();
+
+  if (
+    q.includes('bank') ||
+    q.includes('wio') ||
+    q.includes('mashreq') ||
+    q.includes('rakbank') ||
+    q.includes('account')
+  ) {
+    return [
+      `At ${opts.brandName}, we coordinate KYC pre-vetting and onboarding with Wio Business (typically 3-5 working days), Mashreq NeoBiz, RAKBANK, and Emirates NBD.`,
+      `Final account approval always rests with the bank's independent compliance/KYC team, so we prepare your activity profile, UBO docs, and source-of-funds file before submission.`,
+      `Tap "Request WhatsApp Callback" above if you'd like an advisor to review your passport & business activity for banking readiness.`,
+    ].join('\n\n');
+  }
+
+  if (
+    q.includes('mainland') ||
+    q.includes('det') ||
+    q.includes('free zone') ||
+    q.includes('freezone') ||
+    q.includes('vs') ||
+    q.includes('compare')
+  ) {
+    return [
+      `Quick UAE Jurisdiction Comparison:`,
+      `- Free Zone (AED ${opts.zeroPrice} 0-Visa / AED ${opts.onePrice} 1-Visa): Ideal for remote founders, e-commerce, software, and international consulting with 100% remote setup in 48 hours.`,
+      `- Dubai Mainland DET (AED ${opts.mainlandPrice} with 1 Visa): Best if you want to trade directly across the UAE local market, lease a Dubai retail/office space, or bid on government tenders.`,
+      `We cover all UAE Free Zone authorities (RAKEZ, SHAMS, Ajman, Meydan, IFZA, DMCC & more) plus DET Mainland. Tap "Request WhatsApp Callback" for a tailored match.`,
+    ].join('\n\n');
+  }
+
+  if (
+    q.includes('48') ||
+    q.includes('fast') ||
+    q.includes('time') ||
+    q.includes('long') ||
+    q.includes('process') ||
+    q.includes('remote') ||
+    q.includes('visit')
+  ) {
+    return [
+      `Your UAE Free Zone e-license can be issued 100% remotely within 48 hours after passport verification and name approval.`,
+      `If you choose a 1-Visa package (AED ${opts.onePrice}), you only need to visit Dubai once for a 3-day biometrics and VIP medical appointment for your Emirates ID.`,
+      `Download our step-by-step guide at /company-profile.pdf or tap "Request WhatsApp Callback" to lock your quote.`,
+    ].join('\n\n');
+  }
+
+  if (
+    q.includes('office') ||
+    q.includes('desk') ||
+    q.includes('workspace') ||
+    q.includes('permit') ||
+    q.includes('almas') ||
+    q.includes('silver')
+  ) {
+    return [
+      `Our lowest workspace & office rates across UAE Free Zones:`,
+      `- Flexi Desks AED 5,000/yr | Co-Working AED 8,500/yr | Serviced Desks AED 12,000/yr | Serviced Offices AED 18,000/yr.`,
+      `- Premium Towers: J&G Fitted AED 19,000/yr | Silver Tower AED 28,000/yr | Detached AED 28,000/yr | Almas Tower AED 45,000/yr.`,
+      `Permits start from AED 950 (Office Sharing) and AED 2,500 (Dual Licence). Tap "Request WhatsApp Callback" for availability.`,
+    ].join('\n\n');
+  }
+
+  if (
+    q.includes('price') ||
+    q.includes('cost') ||
+    q.includes('aed') ||
+    q.includes('visa') ||
+    q.includes('package') ||
+    q.includes('5999') ||
+    q.includes('10500') ||
+    q.includes('10999')
+  ) {
+    return [
+      `Our transparent ${opts.brandName} packages (Authority/Gov fees separated from Venture Zone service fees):`,
+      `- 0-Visa Free Zone License: AED ${opts.zeroPrice} (Gov AED 5,200 + Service AED 799)`,
+      `- 1-Visa Free Zone All-Inclusive: AED ${opts.onePrice} (Gov AED 8,750 + Service AED 1,750 — includes Visa, EID, Medical & Bank KYC prep)`,
+      `- Dubai Mainland DET Setup: AED ${opts.mainlandPrice} (Gov AED 9,199 + Service AED 1,800 — includes 1 Visa & full UAE market access)`,
+      `Tap "Request WhatsApp Callback" above to lock your custom quote in 15 seconds.`,
+    ].join('\n\n');
+  }
+
+  return [
+    `Thanks for reaching out to ${opts.brandName}! Here are our transparent starting packages across all UAE Free Zones & Dubai Mainland:`,
+    `- 0-Visa Free Zone License: AED ${opts.zeroPrice} (48h remote setup)`,
+    `- 1-Visa Free Zone Package: AED ${opts.onePrice} (includes 2-year Investor Visa & EID)`,
+    `- Dubai Mainland DET Package: AED ${opts.mainlandPrice} (full UAE market access + 1 Visa)`,
+    `Ask me about Free Zone vs. Mainland, corporate banking, or tap "Request WhatsApp Callback" to speak with an advisor.`,
+  ].join('\n\n');
+}
+
 app.post('/api/whatsapp-bot', async (req, res) => {
   const body = req.body as {
     messages?: ChatTurn[];
@@ -206,18 +307,26 @@ app.post('/api/whatsapp-bot', async (req, res) => {
     return;
   }
 
-  if (!process.env.GEMINI_API_KEY) {
-    res.status(503).json({
-      error: 'Gemini AI assistant key is not configured yet. Tap "Open in WhatsApp" to chat directly with our Dubai advisors.',
-    });
-    return;
-  }
-
   const rawSite = body.context?.siteName?.trim();
   const brandName = !rawSite || rawSite === 'Meridian Setup' ? 'venturezoneuae.com' : rawSite;
   const zeroPrice = Number(body.context?.zeroVisaPriceAed || 5999).toLocaleString();
   const onePrice = Number(body.context?.oneVisaPriceAed || 10500).toLocaleString();
   const mainlandPrice = Number(body.context?.mainlandPriceAed || 10999).toLocaleString();
+  const lastUserQuestion =
+    [...messages].reverse().find((m) => m.role === 'user')?.text || '';
+
+  if (!process.env.GEMINI_API_KEY) {
+    res.json({
+      reply: buildServerWhatsAppFallback(lastUserQuestion, {
+        brandName,
+        zeroPrice,
+        onePrice,
+        mainlandPrice,
+      }),
+      fallback: true,
+    });
+    return;
+  }
 
   const systemInstruction = [
     `You are the official WhatsApp Business Formation Assistant for ${brandName}, a UAE Free Zone & Dubai Mainland company formation consultancy.`,
@@ -247,28 +356,47 @@ app.post('/api/whatsapp-bot', async (req, res) => {
     parts: [{ text: String(m.text || '').slice(0, 1200) }],
   }));
 
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-4-hydrogen',
-      contents,
-      config: {
-        systemInstruction,
-        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
-      },
-    });
+  const attempts: Array<{ model: string; useThinking: boolean }> = [
+    { model: 'gemini-4-hydrogen', useThinking: true },
+    { model: 'gemini-3.1-flash-lite', useThinking: false },
+  ];
 
-    const reply = response.text?.trim();
-    if (!reply) {
-      throw new Error('Empty response received from assistant.');
+  let lastErrMsg = '';
+  for (const attempt of attempts) {
+    try {
+      const response = await ai.models.generateContent({
+        model: attempt.model,
+        contents,
+        config: {
+          systemInstruction,
+          ...(attempt.useThinking
+            ? { thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } }
+            : {}),
+        },
+      });
+
+      const reply = response.text?.trim();
+      if (reply) {
+        res.json({ reply });
+        return;
+      }
+      lastErrMsg = 'Empty response received from assistant.';
+    } catch (err) {
+      lastErrMsg = err instanceof Error ? err.message : 'Unable to generate reply right now.';
+      console.warn(`[whatsapp-bot] ${attempt.model} failed:`, lastErrMsg.slice(0, 180));
     }
-
-    res.json({ reply });
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Unable to generate reply right now.';
-    res.status(502).json({
-      error: msg.slice(0, 240),
-    });
   }
+
+  // Graceful fallback when upstream models experience transient high demand (503/429)
+  res.json({
+    reply: buildServerWhatsAppFallback(lastUserQuestion, {
+      brandName,
+      zeroPrice,
+      onePrice,
+      mainlandPrice,
+    }),
+    fallback: true,
+  });
 });
 
 function escapeHtml(value: string): string {
@@ -617,6 +745,27 @@ app.post('/api/contact/proposal-eml', (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   res.status(200).send(emlContent);
 });
+
+// Guarantee /api/* routes always return JSON and never fall through to Vite/static HTML
+app.use('/api', (_req, res) => {
+  res.status(404).json({ error: 'API endpoint not found.' });
+});
+
+app.use(
+  (
+    err: unknown,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    if (req.path.startsWith('/api')) {
+      const msg = err instanceof Error ? err.message : 'Internal server error.';
+      res.status(500).json({ error: msg.slice(0, 220) });
+      return;
+    }
+    next(err);
+  }
+);
 
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {

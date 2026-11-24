@@ -34,6 +34,7 @@ import {
   DEFAULT_NAV_MENU_ITEMS,
 } from '../data/defaults';
 import { OperationType, auth, db, handleFirestoreError } from '../lib/firebase';
+import { safeReadJson } from '../lib/safeJson';
 import type {
   BlogPost,
   CmsLandingConfig,
@@ -210,8 +211,10 @@ export function AdminDashboard({ user, onViewSite }: AdminDashboardProps) {
   // Fetch server-side Pipedrive CRM configuration status
   useEffect(() => {
     fetch('/api/pipedrive/status')
-      .then((res) => res.json())
-      .then((data) => setPipedriveStatus(data))
+      .then((res) =>
+        safeReadJson<{ configured: boolean; domain: string; endpoint: string }>(res)
+      )
+      .then((parsed) => setPipedriveStatus(parsed.data))
       .catch(() => setPipedriveStatus(null));
   }, []);
 
@@ -366,18 +369,21 @@ export function AdminDashboard({ user, onViewSite }: AdminDashboardProps) {
           source: order.source || 'Admin Manual Sync',
         }),
       });
-      const json = (await res.json()) as {
-        syncStatus: 'synced' | 'pending_config' | 'failed';
+      const parsed = await safeReadJson<{
+        syncStatus?: 'synced' | 'pending_config' | 'failed';
         pipedriveDealId?: string;
         pipedrivePersonId?: string;
         error?: string;
-      };
+      }>(res);
+      const json = parsed.data;
 
       await updateDoc(doc(db, 'orders', order.id), {
-        pipedriveSyncStatus: json.syncStatus,
-        ...(json.pipedriveDealId ? { pipedriveDealId: json.pipedriveDealId } : {}),
-        ...(json.pipedrivePersonId ? { pipedrivePersonId: json.pipedrivePersonId } : {}),
-        ...(json.error ? { pipedriveError: json.error } : {}),
+        pipedriveSyncStatus: json?.syncStatus || 'failed',
+        ...(json?.pipedriveDealId ? { pipedriveDealId: json.pipedriveDealId } : {}),
+        ...(json?.pipedrivePersonId ? { pipedrivePersonId: json.pipedrivePersonId } : {}),
+        ...(json?.error || parsed.errorMessage
+          ? { pipedriveError: json?.error || parsed.errorMessage }
+          : {}),
         updatedAt: serverTimestamp(),
       });
     } catch (err) {

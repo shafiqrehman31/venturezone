@@ -18,6 +18,7 @@ import {
   detectDefaultCountryCode,
 } from '../data/defaults';
 import { OperationType, db, handleFirestoreError } from '../lib/firebase';
+import { safeReadJson } from '../lib/safeJson';
 import type { CmsLandingConfig, JurisdictionType } from '../types/domain';
 
 interface CostCalculatorCardProps {
@@ -112,14 +113,15 @@ export function CostCalculatorCard({
           source: 'Google Ads Calculator',
         }),
       });
-      const syncJson = (await syncRes.json()) as {
+      const parsedSync = await safeReadJson<{
         syncStatus?: 'synced' | 'pending_config' | 'failed';
         pipedriveDealId?: string;
         pipedrivePersonId?: string;
         error?: string;
         message?: string;
-      };
-      if (syncJson.syncStatus) {
+      }>(syncRes);
+      const syncJson = parsedSync.data;
+      if (syncJson?.syncStatus) {
         pipedriveSyncStatus = syncJson.syncStatus;
         pipedriveDealId = syncJson.pipedriveDealId;
         pipedrivePersonId = syncJson.pipedrivePersonId;
