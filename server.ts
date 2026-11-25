@@ -188,7 +188,7 @@ interface ChatTurn {
   text: string;
 }
 
-function buildServerWhatsAppFallback(
+function buildServerGoogleBotFallback(
   userQuestion: string,
   opts: {
     brandName: string;
@@ -204,12 +204,14 @@ function buildServerWhatsAppFallback(
     q.includes('wio') ||
     q.includes('mashreq') ||
     q.includes('rakbank') ||
+    q.includes('enbd') ||
     q.includes('account')
   ) {
     return [
-      `At ${opts.brandName}, we coordinate KYC pre-vetting and onboarding with Wio Business (typically 3-5 working days), Mashreq NeoBiz, RAKBANK, and Emirates NBD.`,
-      `Final account approval always rests with the bank's independent compliance/KYC team, so we prepare your activity profile, UBO docs, and source-of-funds file before submission.`,
-      `Tap "Request WhatsApp Callback" above if you'd like an advisor to review your passport & business activity for banking readiness.`,
+      `Corporate Banking with ${opts.brandName}:`,
+      `We coordinate KYC pre-vetting and onboarding with Wio Business (typically 3-5 working days), Mashreq NeoBiz, RAKBANK, and Emirates NBD.`,
+      `Final account approval always rests with each bank's independent compliance/KYC team, so we prepare your activity profile, UBO docs, and source-of-funds file before submission.`,
+      `Tap "Request Advisor Callback" above if you'd like an advisor to pre-check your passport & business activity for banking readiness.`,
     ].join('\n\n');
   }
 
@@ -222,10 +224,10 @@ function buildServerWhatsAppFallback(
     q.includes('compare')
   ) {
     return [
-      `Quick UAE Jurisdiction Comparison:`,
-      `- Free Zone (AED ${opts.zeroPrice} 0-Visa / AED ${opts.onePrice} 1-Visa): Ideal for remote founders, e-commerce, software, and international consulting with 100% remote setup in 48 hours.`,
-      `- Dubai Mainland DET (AED ${opts.mainlandPrice} with 1 Visa): Best if you want to trade directly across the UAE local market, lease a Dubai retail/office space, or bid on government tenders.`,
-      `We cover all UAE Free Zone authorities (RAKEZ, SHAMS, Ajman, Meydan, IFZA, DMCC & more) plus DET Mainland. Tap "Request WhatsApp Callback" for a tailored match.`,
+      `UAE Jurisdiction Comparison:`,
+      `- UAE Free Zone (AED ${opts.zeroPrice} 0-Visa / AED ${opts.onePrice} 1-Visa): Ideal for remote founders, e-commerce, software, and international consulting with 100% remote setup in 48 hours.`,
+      `- Dubai Mainland DET (AED ${opts.mainlandPrice} with 1 Visa): Best if you want to invoice UAE mainland clients directly, open a Dubai retail/office space, or bid on government contracts.`,
+      `We cover all UAE Free Zone authorities (RAKEZ, SHAMS, Ajman, Meydan, IFZA, DMCC & more) plus DET Mainland. Tap "Request Advisor Callback" for a tailored match.`,
     ].join('\n\n');
   }
 
@@ -241,7 +243,7 @@ function buildServerWhatsAppFallback(
     return [
       `Your UAE Free Zone e-license can be issued 100% remotely within 48 hours after passport verification and name approval.`,
       `If you choose a 1-Visa package (AED ${opts.onePrice}), you only need to visit Dubai once for a 3-day biometrics and VIP medical appointment for your Emirates ID.`,
-      `Download our step-by-step guide at /company-profile.pdf or tap "Request WhatsApp Callback" to lock your quote.`,
+      `Download our step-by-step guide at /company-profile.pdf or tap "Request Advisor Callback" above to lock your quote.`,
     ].join('\n\n');
   }
 
@@ -254,10 +256,10 @@ function buildServerWhatsAppFallback(
     q.includes('silver')
   ) {
     return [
-      `Our lowest workspace & office rates across UAE Free Zones:`,
+      `Workspace, Office & Permit Lowest Rates:`,
       `- Flexi Desks AED 5,000/yr | Co-Working AED 8,500/yr | Serviced Desks AED 12,000/yr | Serviced Offices AED 18,000/yr.`,
       `- Premium Towers: J&G Fitted AED 19,000/yr | Silver Tower AED 28,000/yr | Detached AED 28,000/yr | Almas Tower AED 45,000/yr.`,
-      `Permits start from AED 950 (Office Sharing) and AED 2,500 (Dual Licence). Tap "Request WhatsApp Callback" for availability.`,
+      `- Permits & Visas: Office Sharing AED 950 | Dual Licence AED 2,500 | 1-Yr Visa AED 950 | 2-Yr Standard Visa AED 1,450.`,
     ].join('\n\n');
   }
 
@@ -272,24 +274,24 @@ function buildServerWhatsAppFallback(
     q.includes('10999')
   ) {
     return [
-      `Our transparent ${opts.brandName} packages (Authority/Gov fees separated from Venture Zone service fees):`,
+      `Transparent ${opts.brandName} packages (Authority/Gov fees separated from Service fees):`,
       `- 0-Visa Free Zone License: AED ${opts.zeroPrice} (Gov AED 5,200 + Service AED 799)`,
       `- 1-Visa Free Zone All-Inclusive: AED ${opts.onePrice} (Gov AED 8,750 + Service AED 1,750 — includes Visa, EID, Medical & Bank KYC prep)`,
       `- Dubai Mainland DET Setup: AED ${opts.mainlandPrice} (Gov AED 9,199 + Service AED 1,800 — includes 1 Visa & full UAE market access)`,
-      `Tap "Request WhatsApp Callback" above to lock your custom quote in 15 seconds.`,
+      `Tap "Request Advisor Callback" above to lock your custom quote in 15 seconds.`,
     ].join('\n\n');
   }
 
   return [
-    `Thanks for reaching out to ${opts.brandName}! Here are our transparent starting packages across all UAE Free Zones & Dubai Mainland:`,
+    `Welcome to ${opts.brandName} Google AI Business Assistant! Here are our transparent starting packages across all UAE Free Zones & Dubai Mainland:`,
     `- 0-Visa Free Zone License: AED ${opts.zeroPrice} (48h remote setup)`,
-    `- 1-Visa Free Zone Package: AED ${opts.onePrice} (includes 2-year Investor Visa & EID)`,
+    `- 1-Visa Free Zone Package: AED ${opts.onePrice} (includes 2-year Investor Visa & Emirates ID)`,
     `- Dubai Mainland DET Package: AED ${opts.mainlandPrice} (full UAE market access + 1 Visa)`,
-    `Ask me about Free Zone vs. Mainland, corporate banking, or tap "Request WhatsApp Callback" to speak with an advisor.`,
+    `Ask me about Free Zone vs. Mainland, corporate banking, documents, or tap "Request Advisor Callback" above for a custom advisor quote.`,
   ].join('\n\n');
 }
 
-app.post('/api/whatsapp-bot', async (req, res) => {
+app.post(['/api/google-bot', '/api/whatsapp-bot'], async (req, res) => {
   const body = req.body as {
     messages?: ChatTurn[];
     context?: {
@@ -317,7 +319,7 @@ app.post('/api/whatsapp-bot', async (req, res) => {
 
   if (!process.env.GEMINI_API_KEY) {
     res.json({
-      reply: buildServerWhatsAppFallback(lastUserQuestion, {
+      reply: buildServerGoogleBotFallback(lastUserQuestion, {
         brandName,
         zeroPrice,
         onePrice,
@@ -329,10 +331,10 @@ app.post('/api/whatsapp-bot', async (req, res) => {
   }
 
   const systemInstruction = [
-    `You are the official WhatsApp Business Formation Assistant for ${brandName}, a UAE Free Zone & Dubai Mainland company formation consultancy.`,
-    `Tone: crisp, warm, trustworthy, executive WhatsApp-style replies (concise 2-4 short sentences or 3 tight bullet points max; never write long essays).`,
+    `You are the official Google AI Business Formation Assistant for ${brandName}, a UAE Free Zone & Dubai Mainland company formation consultancy.`,
+    `Tone: crisp, warm, trustworthy, executive advisory replies (concise 2-4 short sentences or 3 tight bullet points max; never write long essays).`,
     `Formatting: Write plain text only. Do NOT use markdown asterisks (**), hashtags (#), or code blocks.`,
-    `Never mention a physical street address or landline phone number—support is online, WhatsApp & email (info@venturezoneuae.com) only.`,
+    `Never mention a physical street address or landline phone number—support is online, callback request & email (info@venturezoneuae.com) only.`,
     `Never promise or guarantee UAE corporate bank account approval—clarify that final approval rests with each bank's compliance/KYC team, while Venture Zone provides document pre-vetting and onboarding coordination.`,
     `We cover ALL UAE Free Zone authorities (RAKEZ, SHAMS, Ajman, Meydan, IFZA, DMCC & more) plus Dubai Mainland (DET) with transparent Authority/Gov Fees separated from Venture Zone Service Fees:`,
     `- 0-Visa Free Zone License: AED ${zeroPrice} (Authority/Gov ~AED 5,200 + Venture Zone Service AED 799; Year 2 renewal ~AED 5,200-6,200).`,
@@ -346,8 +348,8 @@ app.post('/api/whatsapp-bot', async (req, res) => {
     `- Incorporation is 100% remote in 48 hours for E-License; visa holders only visit Dubai once for a 3-day biometrics & medical trip.`,
     `- 0% personal income tax; 0% corporate tax on qualifying Free Zone income or Mainland profits under AED 375,000.`,
     `- Corporate banking support (Wio Business 3-5 days, Mashreq NeoBiz, RAKBANK) for global founders including Pakistan, India, UK, GCC, US, Europe.`,
-    `- Founders can download our Company Profile at /company-profile.pdf or submit the Contact Us page to receive it by email.`,
-    `When a founder asks for pricing or next steps, summarize clearly in AED and encourage them to tap "Request WhatsApp Callback" inside the chat or use the Cost Calculator on the page.`,
+    `- Founders can download our Company Profile at /company-profile.pdf or submit the Contact Us page to receive a tailored proposal by email.`,
+    `When a founder asks for pricing or next steps, summarize clearly in AED and encourage them to tap "Request Advisor Callback" inside the chat or use the Cost Calculator on the page.`,
   ].join('\n');
 
   const trimmedHistory = messages.slice(-12);
@@ -383,13 +385,13 @@ app.post('/api/whatsapp-bot', async (req, res) => {
       lastErrMsg = 'Empty response received from assistant.';
     } catch (err) {
       lastErrMsg = err instanceof Error ? err.message : 'Unable to generate reply right now.';
-      console.warn(`[whatsapp-bot] ${attempt.model} failed:`, lastErrMsg.slice(0, 180));
+      console.warn(`[google-bot] ${attempt.model} failed:`, lastErrMsg.slice(0, 180));
     }
   }
 
   // Graceful fallback when upstream models experience transient high demand (503/429)
   res.json({
-    reply: buildServerWhatsAppFallback(lastUserQuestion, {
+    reply: buildServerGoogleBotFallback(lastUserQuestion, {
       brandName,
       zeroPrice,
       onePrice,

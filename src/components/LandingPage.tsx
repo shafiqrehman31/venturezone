@@ -53,7 +53,7 @@ import {
   GuidesContactPage,
   MainlandPage,
 } from './SiteSubpages';
-import { WhatsAppChatbot } from './WhatsAppChatbot';
+import { GoogleChatbot } from './GoogleChatbot';
 
 function resolveInitialSlug(): string {
   const cleaned = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
@@ -1139,13 +1139,14 @@ export function LandingPage() {
         </button>
       </div>
 
-      {/* Floating WhatsApp AI Chatbot */}
-      <WhatsAppChatbot
+      {/* Floating Google AI Business Assistant */}
+      <GoogleChatbot
         cms={cms}
         onQuoteCreated={(code) => {
           setTrackingInput(code);
           setActiveTrackingCode(code);
         }}
+        onOpenContact={() => navigatePage('contact')}
       />
 
       {/* Article Reader Modal */}

@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { doc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import {
-  ArrowUpRight,
   Check,
-  CheckCheck,
   CheckCircle2,
   Loader2,
-  MessageCircle,
+  Mail,
+  MessageSquare,
   RotateCcw,
   Send,
   Sparkles,
@@ -14,8 +13,8 @@ import {
 } from 'lucide-react';
 import { COUNTRY_CODES, detectDefaultCountryCode } from '../data/defaults';
 import { OperationType, db, handleFirestoreError } from '../lib/firebase';
-import { extractCleanErrorMessage, safeReadJson } from '../lib/safeJson';
-import { buildWhatsAppFallbackReply } from '../lib/whatsappFallback';
+import { buildGoogleBotFallbackReply } from '../lib/googleChatFallback';
+import { safeReadJson } from '../lib/safeJson';
 import type { CmsLandingConfig, JurisdictionType } from '../types/domain';
 
 interface ChatMessage {
@@ -25,47 +24,74 @@ interface ChatMessage {
   time: string;
 }
 
-interface WhatsAppChatbotProps {
+interface GoogleChatbotProps {
   cms: Omit<CmsLandingConfig, 'updatedAt'>;
   onQuoteCreated?: (trackingCode: string) => void;
+  onOpenContact?: () => void;
 }
 
 function nowTimeLabel(): string {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+function GoogleSparkleMark({ className = 'h-5 w-5' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <path
+        fill="#4285F4"
+        d="M12 2c.4 4.2 3.8 7.6 8 8-4.2.4-7.6 3.8-8 8-.4-4.2-3.8-7.6-8-8 4.2-.4 7.6-3.8 8-8Z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 2c.2 2.1 1.1 4 2.4 5.6L12 10V2Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M4 10c2.1-.2 4-1.1 5.6-2.4L12 10H4Z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 18c-.2-2.1-1.1-4-2.4-5.6L12 10v8Z"
+      />
+    </svg>
+  );
+}
+
 const QUICK_PROMPTS = [
   'Free Zone vs Mainland?',
   '1-Visa Package Cost',
   'UAE Bank Account for Founders',
-  'How fast is 48h setup?',
+  'Documents & 48h Timeline',
 ];
 
-export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
+export function GoogleChatbot({
+  cms,
+  onQuoteCreated,
+  onOpenContact,
+}: GoogleChatbotProps) {
   const rawSite = cms.siteName?.trim();
   const brandName = !rawSite || rawSite === 'Meridian Setup' ? 'venturezoneuae.com' : rawSite;
-  const cleanWaDigits = cms.whatsappNumber.replace(/[^\d]/g, '');
 
   const [isOpen, setIsOpen] = useState(false);
   const [hasOpenedOnce, setHasOpenedOnce] = useState(false);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
-  const [botError, setBotError] = useState('');
 
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
       id: 'welcome_1',
       role: 'model',
-      text: `Marhaba! Welcome to ${brandName} WhatsApp Desk. Ask me anything about Dubai Free Zone vs. Mainland formation, AED package pricing, visas, or corporate banking.`,
+      text: `Hello! I'm the ${brandName} Google AI Business Assistant. Ask me anything about UAE Free Zone vs. Dubai Mainland setup, AED package pricing, visas, or corporate banking.`,
       time: nowTimeLabel(),
     },
   ]);
 
-  // Quick in-chat Lead / Instant Callback drawer
+  // Quick in-chat Callback / Quote Drawer
   const [showLeadCard, setShowLeadCard] = useState(false);
   const [leadName, setLeadName] = useState('');
   const [leadCountryCode, setLeadCountryCode] = useState(() => detectDefaultCountryCode());
   const [leadPhone, setLeadPhone] = useState('');
+  const [leadEmail, setLeadEmail] = useState('');
   const [leadJurisdiction, setLeadJurisdiction] = useState<JurisdictionType>('Free Zone');
   const [savingLead, setSavingLead] = useState(false);
   const [leadError, setLeadError] = useState('');
@@ -84,13 +110,13 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
   }
 
   function resetConversation() {
-    setBotError('');
     setShowLeadCard(false);
+    setLeadError('');
     setMessages([
       {
         id: `welcome_${Date.now()}`,
         role: 'model',
-        text: `Marhaba! Welcome to ${brandName} WhatsApp Desk. How can we help you launch your Dubai company today?`,
+        text: `Hello! Ready to help with your UAE company formation at ${brandName}. Ask about packages, banking, or tap "Request Callback" to lock a quote.`,
         time: nowTimeLabel(),
       },
     ]);
@@ -100,7 +126,6 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
     const trimmed = textToSend.trim();
     if (!trimmed || sending) return;
 
-    setBotError('');
     const userMsg: ChatMessage = {
       id: `u_${Date.now()}`,
       role: 'user',
@@ -114,7 +139,7 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
     setSending(true);
 
     try {
-      const res = await fetch('/api/whatsapp-bot', {
+      const res = await fetch('/api/google-bot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -144,9 +169,8 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
         return;
       }
 
-      // Deliver immediate UAE formation guidance when static-hosted (e.g. GoDaddy cPanel),
-      // missing GEMINI_API_KEY, or experiencing transient backend/network issues.
-      const fallbackReply = buildWhatsAppFallbackReply(trimmed, {
+      // Built-in knowledge engine guarantees instant answers even on static hosts
+      const fallbackReply = buildGoogleBotFallbackReply(trimmed, {
         brandName,
         zeroVisaPriceAed: cms.zeroVisaPriceAed,
         oneVisaPriceAed: cms.oneVisaPriceAed,
@@ -161,25 +185,22 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
           time: nowTimeLabel(),
         },
       ]);
-    } catch (err) {
-      const clean = extractCleanErrorMessage(err);
-      const fallbackReply = buildWhatsAppFallbackReply(trimmed, {
+    } catch {
+      const fallbackReply = buildGoogleBotFallbackReply(trimmed, {
         brandName,
         zeroVisaPriceAed: cms.zeroVisaPriceAed,
         oneVisaPriceAed: cms.oneVisaPriceAed,
         mainlandPriceAed: cms.mainlandPriceAed,
       });
-      if (clean) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `m_${Date.now()}`,
-            role: 'model',
-            text: fallbackReply,
-            time: nowTimeLabel(),
-          },
-        ]);
-      }
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `m_${Date.now()}`,
+          role: 'model',
+          text: fallbackReply,
+          time: nowTimeLabel(),
+        },
+      ]);
     } finally {
       setSending(false);
     }
@@ -190,7 +211,7 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
     setLeadError('');
     const cleanPhone = leadPhone.replace(/[^\d]/g, '');
     if (leadName.trim().length < 2 || cleanPhone.length < 6 || cleanPhone.length > 15) {
-      setLeadError('Enter your name and a valid WhatsApp number (6–15 digits).');
+      setLeadError('Enter your full name and a valid phone number (6-15 digits).');
       return;
     }
 
@@ -222,13 +243,14 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
           fullName: leadName.trim(),
           countryCode: leadCountryCode,
           whatsappNumber: cleanPhone,
+          email: leadEmail.trim() || undefined,
           jurisdiction: leadJurisdiction,
           authority,
-          businessActivity: 'WhatsApp Chatbot Inquiry',
+          businessActivity: 'Google AI Chatbot Inquiry',
           visaCount: 1,
           packageName,
           estimatedTotalAed,
-          source: 'WhatsApp AI Chatbot',
+          source: 'Google AI Chatbot',
         }),
       });
       const parsedSync = await safeReadJson<{
@@ -252,16 +274,17 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
       fullName: leadName.trim().slice(0, 120),
       countryCode: leadCountryCode.slice(0, 8),
       whatsappNumber: cleanPhone.slice(0, 32),
+      ...(leadEmail.trim() ? { email: leadEmail.trim().slice(0, 200) } : {}),
       jurisdiction: leadJurisdiction,
       authority,
-      businessActivity: 'WhatsApp Chatbot Inquiry',
+      businessActivity: 'Google AI Chatbot Inquiry',
       visaCount: 1,
       packageId: leadJurisdiction === 'Mainland' ? 'mainland-llc' : 'one-visa',
       packageName,
       estimatedTotalAed,
       status: 'New Lead',
       currentStep: 1,
-      source: 'WhatsApp AI Chatbot',
+      source: 'Google AI Chatbot',
       pipedriveSyncStatus,
       ...(pipedriveDealId ? { pipedriveDealId } : {}),
       ...(pipedrivePersonId ? { pipedrivePersonId } : {}),
@@ -286,13 +309,14 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
       setShowLeadCard(false);
       setLeadName('');
       setLeadPhone('');
+      setLeadEmail('');
       onQuoteCreated?.(trackingCode);
       setMessages((prev) => [
         ...prev,
         {
           id: `lead_ok_${Date.now()}`,
           role: 'model',
-          text: `Quote locked! Reference: ${trackingCode} (${packageName} · AED ${estimatedTotalAed.toLocaleString()}). A ${brandName} advisor will message you on ${leadCountryCode} ${cleanPhone} shortly.`,
+          text: `Quote locked! Reference: ${trackingCode} (${packageName} · AED ${estimatedTotalAed.toLocaleString()}). A ${brandName} advisor will reach out to you on ${leadCountryCode} ${cleanPhone} shortly.`,
           time: nowTimeLabel(),
         },
       ]);
@@ -300,114 +324,136 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
       try {
         handleFirestoreError(err, OperationType.WRITE, `orders/${orderId}`);
       } catch {
-        setLeadError('Could not save quote. Tap "Live WhatsApp" to connect directly.');
+        setLeadError('Unable to save quote right now. Please try the Contact Us page.');
       }
     } finally {
       setSavingLead(false);
     }
   }
 
-  const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user')?.text;
-  const handoffHref = `https://wa.me/${cleanWaDigits}?text=${encodeURIComponent(
-    lastUserMessage
-      ? `Hi ${brandName}, continuing from website chat: "${lastUserMessage}"`
-      : `Hi ${brandName}, I would like assistance with Dubai company formation.`
-  )}`;
-
   return (
     <>
-      {/* Floating WhatsApp Chatbot Trigger Button */}
+      {/* Floating Google AI Chatbot Trigger Button */}
       {!isOpen && (
         <button
           type="button"
           onClick={openChat}
-          aria-label="Open WhatsApp Chatbot Assistant"
-          className="fixed bottom-20 right-4 z-40 flex h-14 items-center gap-2.5 rounded-full bg-[#00b294] px-4 text-white shadow-[0_12px_30px_-6px_rgba(0,178,148,0.5)] ring-2 ring-white/85 transition-transform duration-150 hover:scale-105 hover:bg-[#00967C] md:bottom-6 md:right-6"
+          aria-label="Open Google AI Assistant"
+          className="fixed bottom-20 right-4 z-40 flex h-14 items-center gap-2.5 rounded-full border border-slate-200 bg-white px-4 text-[#111827] shadow-[0_14px_34px_-6px_rgba(66,133,244,0.35)] transition-transform duration-150 hover:scale-105 hover:border-[#4285F4] md:bottom-6 md:right-6"
         >
-          <span className="relative flex items-center justify-center">
-            <MessageCircle className="h-6 w-6" />
+          <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[#F1F5F9]">
+            <GoogleSparkleMark className="h-5 w-5" />
             {!hasOpenedOnce && (
-              <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#ff0031] font-mono text-[10px] font-bold text-white">
+              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#4285F4] font-mono text-[10px] font-bold text-white">
                 1
               </span>
             )}
           </span>
-          <span className="hidden text-xs font-bold tracking-tight sm:inline">
-            WhatsApp Chat
+          <span className="hidden pr-1 text-left sm:block">
+            <span className="block text-xs font-bold tracking-tight text-[#111827]">
+              Google AI Chat
+            </span>
+            <span className="block text-[10px] font-medium text-slate-500">
+              Ask about UAE Setup
+            </span>
           </span>
         </button>
       )}
 
-      {/* WhatsApp Chatbot Window */}
+      {/* Google AI Chatbot Window */}
       {isOpen && (
         <section
-          aria-label="WhatsApp Formation Chatbot"
-          className="fixed bottom-20 right-3 left-3 z-50 flex max-h-[78vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl sm:left-auto sm:right-6 sm:w-[390px] md:bottom-6"
+          aria-label="Google AI Formation Assistant"
+          className="fixed bottom-20 right-3 left-3 z-50 flex max-h-[78vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl sm:left-auto sm:right-6 sm:w-[395px] md:bottom-6"
         >
-          {/* WhatsApp Header */}
-          <div className="flex items-center justify-between gap-3 bg-[#00b294] px-4 py-3 text-white">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#00b294]">
-                <MessageCircle className="h-5 w-5 fill-current" />
-                <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[#00b294] bg-[#ff0031]" />
+          {/* Google AI Header */}
+          <div className="border-b border-slate-200 bg-white px-4 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-[#F8FAFC]">
+                  <GoogleSparkleMark className="h-5 w-5" />
+                  <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-[#34A853]" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 truncate font-display text-sm font-bold text-[#111827]">
+                    <span className="truncate">Google AI Assistant</span>
+                    <span className="rounded bg-[#EFF6FF] px-1.5 py-0.5 font-mono text-[10px] font-bold text-[#1D4ED8]">
+                      AI
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[11px] text-slate-500">
+                    <Sparkles className="h-3 w-3 shrink-0 text-[#4285F4]" />
+                    <span className="truncate">{brandName} · Instant UAE Setup Answers</span>
+                  </div>
+                </div>
               </div>
-              <div className="min-w-0">
-                <div className="truncate font-display text-sm font-bold">
-                  {brandName} WhatsApp Bot
-                </div>
-                <div className="flex items-center gap-1 text-[11px] text-white/90">
-                  <Sparkles className="h-3 w-3 shrink-0" />
-                  <span className="truncate">Online · Instant AED Quotes &amp; Setup Help</span>
-                </div>
+
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={resetConversation}
+                  title="New chat"
+                  aria-label="Start new Google AI chat"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-[#111827]"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  title="Close chat"
+                  aria-label="Close Google AI chatbot"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-[#111827]"
+                >
+                  <X className="h-5 w-5" />
+                </button>
               </div>
             </div>
-
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={resetConversation}
-                title="Restart chat"
-                aria-label="Restart chat"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-white/90 hover:bg-white/15 hover:text-white"
-              >
-                <RotateCcw className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                title="Close chat"
-                aria-label="Close WhatsApp chatbot"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-white/90 hover:bg-white/15 hover:text-white"
-              >
-                <X className="h-5 w-5" />
-              </button>
+            {/* Google 4-color accent bar */}
+            <div className="mt-2.5 grid h-0.5 grid-cols-4 overflow-hidden rounded-full">
+              <div className="bg-[#4285F4]" />
+              <div className="bg-[#EA4335]" />
+              <div className="bg-[#FBBC05]" />
+              <div className="bg-[#34A853]" />
             </div>
           </div>
 
-          {/* Live WhatsApp Handoff Strip */}
-          <div className="flex items-center justify-between border-b border-[#00b294]/20 bg-[#00b294]/[0.08] px-3.5 py-2 text-[11px]">
+          {/* Advisor Action Strip */}
+          <div className="flex items-center justify-between border-b border-slate-100 bg-[#F8FAFC] px-3.5 py-2 text-[11px]">
             <button
               type="button"
               onClick={() => setShowLeadCard((prev) => !prev)}
-              className="inline-flex items-center gap-1 font-bold text-[#111827] hover:text-[#ff0031]"
+              className="inline-flex items-center gap-1.5 font-bold text-[#111827] hover:text-[#4285F4]"
             >
-              <CheckCircle2 className="h-3.5 w-3.5 text-[#00b294]" />
-              <span>{showLeadCard ? 'Hide Quote Form' : 'Request WhatsApp Callback'}</span>
+              <CheckCircle2 className="h-3.5 w-3.5 text-[#34A853]" />
+              <span>{showLeadCard ? 'Hide Quote Form' : 'Request Advisor Callback'}</span>
             </button>
 
-            <a
-              href={handoffHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-bold text-[#008A72] hover:underline"
-            >
-              <span>Live WhatsApp</span>
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </a>
+            {onOpenContact ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  onOpenContact();
+                }}
+                className="inline-flex items-center gap-1 font-bold text-[#1D4ED8] hover:underline"
+              >
+                <Mail className="h-3.5 w-3.5" />
+                <span>Email Proposal</span>
+              </button>
+            ) : (
+              <a
+                href={`mailto:info@venturezoneuae.com?subject=${encodeURIComponent('UAE Company Setup Proposal Request')}`}
+                className="inline-flex items-center gap-1 font-bold text-[#1D4ED8] hover:underline"
+              >
+                <Mail className="h-3.5 w-3.5" />
+                <span>Email Advisor</span>
+              </a>
+            )}
           </div>
 
           {/* Chat Message Canvas */}
-          <div className="flex-1 space-y-3 overflow-y-auto bg-[#F4F6F8] p-3.5">
+          <div className="flex-1 space-y-3 overflow-y-auto bg-[#F8FAFC] p-3.5">
             {messages.map((msg) => {
               const isUser = msg.role === 'user';
               return (
@@ -416,16 +462,25 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
                   className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed shadow-sm ${
+                    className={`max-w-[86%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${
                       isUser
-                        ? 'rounded-br-sm bg-[#E0F7F3] text-[#111827]'
-                        : 'rounded-bl-sm bg-white text-[#1E293B]'
+                        ? 'rounded-br-sm bg-[#1D4ED8] text-white shadow-sm'
+                        : 'rounded-bl-sm border border-slate-200/80 bg-white text-[#1E293B] shadow-sm'
                     }`}
                   >
+                    {!isUser && (
+                      <div className="mb-1 flex items-center gap-1 text-[10px] font-bold text-slate-500">
+                        <GoogleSparkleMark className="h-3 w-3" />
+                        <span>Google AI</span>
+                      </div>
+                    )}
                     <p className="whitespace-pre-line">{msg.text}</p>
-                    <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-slate-400">
+                    <div
+                      className={`mt-1 flex items-center justify-end gap-1 text-[10px] ${
+                        isUser ? 'text-blue-100' : 'text-slate-400'
+                      }`}
+                    >
                       <span className="font-mono">{msg.time}</span>
-                      {isUser && <CheckCheck className="h-3.5 w-3.5 text-[#00b294]" />}
                     </div>
                   </div>
                 </div>
@@ -434,25 +489,10 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
 
             {sending && (
               <div className="flex justify-start">
-                <div className="inline-flex items-center gap-1.5 rounded-2xl rounded-bl-sm bg-white px-3.5 py-2.5 text-xs text-slate-500 shadow-sm">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin text-[#00b294]" />
-                  <span>Typing...</span>
+                <div className="inline-flex items-center gap-2 rounded-2xl rounded-bl-sm border border-slate-200/80 bg-white px-3.5 py-2.5 text-xs text-slate-600 shadow-sm">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-[#4285F4]" />
+                  <span>Thinking with Google AI...</span>
                 </div>
-              </div>
-            )}
-
-            {botError && (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-                <p>{botError}</p>
-                <a
-                  href={handoffHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-flex items-center gap-1 font-bold text-[#008A72] underline"
-                >
-                  <span>Continue on WhatsApp App</span>
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </a>
               </div>
             )}
 
@@ -460,11 +500,11 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
             {showLeadCard && (
               <form
                 onSubmit={handleLeadSubmit}
-                className="space-y-2.5 rounded-xl border border-[#00b294]/30 bg-white p-3.5 shadow-sm"
+                className="space-y-2.5 rounded-xl border border-blue-200 bg-white p-3.5 shadow-sm"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-display text-xs font-bold text-[#111827]">
-                    Lock Instant Quote on WhatsApp
+                    Lock Instant Quote &amp; Callback
                   </span>
                   <button
                     type="button"
@@ -499,14 +539,22 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
                   value={leadName}
                   onChange={(e) => setLeadName(e.target.value)}
                   placeholder="Your full name"
-                  className="min-h-[40px] w-full rounded-lg border border-slate-300 px-3 text-xs focus:border-[#ff0031] focus:outline-none"
+                  className="min-h-[40px] w-full rounded-lg border border-slate-300 px-3 text-xs focus:border-[#4285F4] focus:outline-none"
+                />
+
+                <input
+                  type="email"
+                  value={leadEmail}
+                  onChange={(e) => setLeadEmail(e.target.value)}
+                  placeholder="Email for PDF proposal (optional)"
+                  className="min-h-[40px] w-full rounded-lg border border-slate-300 px-3 text-xs focus:border-[#4285F4] focus:outline-none"
                 />
 
                 <div className="flex gap-1.5">
                   <select
                     value={leadCountryCode}
                     onChange={(e) => setLeadCountryCode(e.target.value)}
-                    aria-label="WhatsApp country dial code"
+                    aria-label="Phone country dial code"
                     className="min-h-[40px] w-24 shrink-0 rounded-lg border border-slate-300 bg-white px-1.5 font-mono text-[11px]"
                   >
                     {COUNTRY_CODES.map((c) => (
@@ -521,7 +569,7 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
                     value={leadPhone}
                     onChange={(e) => setLeadPhone(e.target.value)}
                     placeholder="50 482 9100"
-                    className="min-h-[40px] w-full rounded-lg border border-slate-300 px-2.5 font-mono text-xs focus:border-[#ff0031] focus:outline-none"
+                    className="min-h-[40px] w-full rounded-lg border border-slate-300 px-2.5 font-mono text-xs focus:border-[#4285F4] focus:outline-none"
                   />
                 </div>
 
@@ -530,14 +578,14 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
                 <button
                   type="submit"
                   disabled={savingLead}
-                  className="flex min-h-[42px] w-full items-center justify-center gap-1.5 rounded-lg bg-[#ff0031] text-xs font-bold text-white transition-colors hover:bg-[#D90029] disabled:opacity-60"
+                  className="flex min-h-[42px] w-full items-center justify-center gap-1.5 rounded-lg bg-[#1D4ED8] text-xs font-bold text-white transition-colors hover:bg-[#1E40AF] disabled:opacity-60"
                 >
                   {savingLead ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Check className="h-4 w-4" />
                   )}
-                  <span>{savingLead ? 'Saving Quote...' : 'Lock Quote & Notify Me'}</span>
+                  <span>{savingLead ? 'Saving Quote...' : 'Lock Quote & Request Callback'}</span>
                 </button>
               </form>
             )}
@@ -546,16 +594,17 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
           </div>
 
           {/* Quick Suggestion Chips */}
-          <div className="flex gap-1.5 overflow-x-auto border-t border-slate-100 bg-[#FAFAFB] px-3 py-2">
+          <div className="flex gap-1.5 overflow-x-auto border-t border-slate-100 bg-white px-3 py-2">
             {QUICK_PROMPTS.map((chip) => (
               <button
                 key={chip}
                 type="button"
                 disabled={sending}
                 onClick={() => sendMessage(chip)}
-                className="shrink-0 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-[#111827] transition-colors hover:border-[#00b294] hover:bg-[#00b294]/[0.08] disabled:opacity-50"
+                className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-[#F8FAFC] px-2.5 py-1.5 text-[11px] font-semibold text-[#111827] transition-colors hover:border-[#4285F4] hover:bg-[#EFF6FF] disabled:opacity-50"
               >
-                {chip}
+                <MessageSquare className="h-3 w-3 text-[#4285F4]" />
+                <span>{chip}</span>
               </button>
             ))}
           </div>
@@ -572,15 +621,15 @@ export function WhatsAppChatbot({ cms, onQuoteCreated }: WhatsAppChatbotProps) {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type a message..."
-              aria-label="Message WhatsApp bot"
-              className="min-h-[42px] flex-1 rounded-xl border border-slate-200 bg-[#FAFAFB] px-3.5 text-xs text-[#1E293B] placeholder:text-slate-400 focus:border-[#00b294] focus:bg-white focus:outline-none"
+              placeholder="Ask Google AI about UAE setup..."
+              aria-label="Message Google AI assistant"
+              className="min-h-[42px] flex-1 rounded-xl border border-slate-200 bg-[#F8FAFC] px-3.5 text-xs text-[#1E293B] placeholder:text-slate-400 focus:border-[#4285F4] focus:bg-white focus:outline-none"
             />
             <button
               type="submit"
               disabled={!input.trim() || sending}
               aria-label="Send message"
-              className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-[#00b294] text-white transition-colors hover:bg-[#00967C] disabled:opacity-50"
+              className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-[#1D4ED8] text-white transition-colors hover:bg-[#1E40AF] disabled:opacity-50"
             >
               <Send className="h-4 w-4" />
             </button>
