@@ -283,7 +283,7 @@ function buildServerGoogleBotFallback(
   }
 
   return [
-    `Welcome to ${opts.brandName} Google AI Business Assistant! Here are our transparent starting packages across all UAE Free Zones & Dubai Mainland:`,
+    `Hi! I'm Zoya, your ${opts.brandName} UAE Business Setup Specialist. Here are our transparent starting packages across all UAE Free Zones & Dubai Mainland:`,
     `- 0-Visa Free Zone License: AED ${opts.zeroPrice} (48h remote setup)`,
     `- 1-Visa Free Zone Package: AED ${opts.onePrice} (includes 2-year Investor Visa & Emirates ID)`,
     `- Dubai Mainland DET Package: AED ${opts.mainlandPrice} (full UAE market access + 1 Visa)`,
@@ -331,7 +331,7 @@ app.post(['/api/google-bot', '/api/whatsapp-bot'], async (req, res) => {
   }
 
   const systemInstruction = [
-    `You are the official Google AI Business Formation Assistant for ${brandName}, a UAE Free Zone & Dubai Mainland company formation consultancy.`,
+    `You are Zoya, the official Venture Zone UAE Business Setup Specialist & AI Advisor for ${brandName}, a UAE Free Zone & Dubai Mainland company formation consultancy.`,
     `Tone: crisp, warm, trustworthy, executive advisory replies (concise 2-4 short sentences or 3 tight bullet points max; never write long essays).`,
     `Formatting: Write plain text only. Do NOT use markdown asterisks (**), hashtags (#), or code blocks.`,
     `Never mention a physical street address or landline phone number—support is online, callback request & email (info@venturezoneuae.com) only.`,

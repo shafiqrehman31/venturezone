@@ -133,10 +133,10 @@ export function buildGoogleBotFallbackReply(
   }
 
   return [
-    `Welcome to ${brandName} Google AI Business Assistant! Here are our transparent starting packages across all UAE Free Zones & Dubai Mainland:`,
+    `Hi! I'm Zoya, your ${brandName} UAE Business Setup Specialist. Here are our transparent starting packages across all UAE Free Zones & Dubai Mainland:`,
     `- 0-Visa Free Zone License: AED ${zeroPrice} (48h remote setup)`,
     `- 1-Visa Free Zone Package: AED ${onePrice} (includes 2-year Investor Visa & Emirates ID)`,
     `- Dubai Mainland DET Package: AED ${mainlandPrice} (full UAE market access + 1 Visa)`,
-    `Ask me about Free Zone vs. Mainland, corporate banking, documents, taxes, or tap "Request Callback" above for a custom advisor quote.`,
+    `Ask me about Free Zone vs. Mainland, corporate banking, documents, taxes, or tap "Request Advisor Callback" above for a custom advisor quote.`,
   ].join('\n\n');
 }

@@ -77,11 +77,14 @@ export function GoogleChatbot({
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
 
+  const WELCOME_TEXT =
+    "Hi there! 👋 I'm Zoya, your Venture Zone UAE Business Setup Specialist. Whether you're comparing Dubai Mainland vs. Free Zone, checking AED package pricing, or asking about visas and corporate banking—how can I help you today?";
+
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
       id: 'welcome_1',
       role: 'model',
-      text: `Hello! I'm the ${brandName} Google AI Business Assistant. Ask me anything about UAE Free Zone vs. Dubai Mainland setup, AED package pricing, visas, or corporate banking.`,
+      text: WELCOME_TEXT,
       time: nowTimeLabel(),
     },
   ]);
@@ -116,7 +119,7 @@ export function GoogleChatbot({
       {
         id: `welcome_${Date.now()}`,
         role: 'model',
-        text: `Hello! Ready to help with your UAE company formation at ${brandName}. Ask about packages, banking, or tap "Request Callback" to lock a quote.`,
+        text: WELCOME_TEXT,
         time: nowTimeLabel(),
       },
     ]);
@@ -333,12 +336,12 @@ export function GoogleChatbot({
 
   return (
     <>
-      {/* Floating Google AI Chatbot Trigger Button */}
+      {/* Floating Zoya Setup Advisor Trigger Button */}
       {!isOpen && (
         <button
           type="button"
           onClick={openChat}
-          aria-label="Open Google AI Assistant"
+          aria-label="Open Zoya — Setup Advisor"
           className="fixed bottom-20 right-4 z-40 flex h-14 items-center gap-2.5 rounded-full border border-slate-200 bg-white px-4 text-[#111827] shadow-[0_14px_34px_-6px_rgba(66,133,244,0.35)] transition-transform duration-150 hover:scale-105 hover:border-[#4285F4] md:bottom-6 md:right-6"
         >
           <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[#F1F5F9]">
@@ -351,22 +354,22 @@ export function GoogleChatbot({
           </span>
           <span className="hidden pr-1 text-left sm:block">
             <span className="block text-xs font-bold tracking-tight text-[#111827]">
-              Google AI Chat
+              Zoya — Setup Advisor
             </span>
             <span className="block text-[10px] font-medium text-slate-500">
-              Ask about UAE Setup
+              VentureZone AI Advisor
             </span>
           </span>
         </button>
       )}
 
-      {/* Google AI Chatbot Window */}
+      {/* Zoya AI Chatbot Window */}
       {isOpen && (
         <section
-          aria-label="Google AI Formation Assistant"
+          aria-label="Zoya — Setup Advisor"
           className="fixed bottom-20 right-3 left-3 z-50 flex max-h-[78vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl sm:left-auto sm:right-6 sm:w-[395px] md:bottom-6"
         >
-          {/* Google AI Header */}
+          {/* Header */}
           <div className="border-b border-slate-200 bg-white px-4 py-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
@@ -376,14 +379,11 @@ export function GoogleChatbot({
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 truncate font-display text-sm font-bold text-[#111827]">
-                    <span className="truncate">Google AI Assistant</span>
-                    <span className="rounded bg-[#EFF6FF] px-1.5 py-0.5 font-mono text-[10px] font-bold text-[#1D4ED8]">
-                      AI
-                    </span>
+                    <span className="truncate">Zoya — Setup Advisor</span>
                   </div>
                   <div className="flex items-center gap-1 text-[11px] text-slate-500">
                     <Sparkles className="h-3 w-3 shrink-0 text-[#4285F4]" />
-                    <span className="truncate">{brandName} · Instant UAE Setup Answers</span>
+                    <span className="truncate">Zoya • VentureZone AI Advisor</span>
                   </div>
                 </div>
               </div>
@@ -471,7 +471,7 @@ export function GoogleChatbot({
                     {!isUser && (
                       <div className="mb-1 flex items-center gap-1 text-[10px] font-bold text-slate-500">
                         <GoogleSparkleMark className="h-3 w-3" />
-                        <span>Google AI</span>
+                        <span>Zoya</span>
                       </div>
                     )}
                     <p className="whitespace-pre-line">{msg.text}</p>
@@ -491,7 +491,7 @@ export function GoogleChatbot({
               <div className="flex justify-start">
                 <div className="inline-flex items-center gap-2 rounded-2xl rounded-bl-sm border border-slate-200/80 bg-white px-3.5 py-2.5 text-xs text-slate-600 shadow-sm">
                   <Loader2 className="h-3.5 w-3.5 animate-spin text-[#4285F4]" />
-                  <span>Thinking with Google AI...</span>
+                  <span>Zoya is typing...</span>
                 </div>
               </div>
             )}
@@ -621,8 +621,8 @@ export function GoogleChatbot({
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask Google AI about UAE setup..."
-              aria-label="Message Google AI assistant"
+              placeholder="Ask Zoya about UAE setup..."
+              aria-label="Message Zoya — Setup Advisor"
               className="min-h-[42px] flex-1 rounded-xl border border-slate-200 bg-[#F8FAFC] px-3.5 text-xs text-[#1E293B] placeholder:text-slate-400 focus:border-[#4285F4] focus:bg-white focus:outline-none"
             />
             <button
