@@ -3,7 +3,6 @@ import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import {
   ArrowRight,
   CheckCircle2,
-  FileDown,
   Globe2,
   Loader2,
   Mail,
@@ -12,8 +11,8 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { COUNTRY_CODES, detectDefaultCountryCode } from '../data/defaults';
-import { downloadProposalBooklet } from '../lib/downloadBooklet';
 import { OperationType, db, handleFirestoreError } from '../lib/firebase';
+import { safeReadJson } from '../lib/safeJson';
 import type {
   CmsLandingConfig,
   ContactEmailStatus,
@@ -55,22 +54,11 @@ export function ContactPage({ cms, onStartQuote }: ContactPageProps) {
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [downloadingProfile, setDownloadingProfile] = useState(false);
   const [preview, setPreview] = useState<ProposalPreviewState | null>(null);
 
   const rawSite = cms.siteName?.trim();
   const brandName = !rawSite || rawSite === 'Meridian Setup' ? 'venturezoneuae.com' : rawSite;
   const cleanWaDigits = cms.whatsappNumber.replace(/[^\d]/g, '');
-
-  async function handleDownloadCompanyProfile() {
-    if (downloadingProfile) return;
-    setDownloadingProfile(true);
-    try {
-      await downloadProposalBooklet();
-    } finally {
-      setDownloadingProfile(false);
-    }
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -116,7 +104,7 @@ export function ContactPage({ cms, onStartQuote }: ContactPageProps) {
           message: message.trim(),
         }),
       });
-      const json = (await emailRes.json()) as {
+      const parsedEmail = await safeReadJson<{
         emailStatus?: ContactEmailStatus;
         emailNote?: string;
         template?: {
@@ -126,14 +114,15 @@ export function ContactPage({ cms, onStartQuote }: ContactPageProps) {
           bodyText: string;
           attachmentName: string;
         };
-      };
-      if (json.emailStatus) {
+      }>(emailRes);
+      const json = parsedEmail.data;
+      if (json?.emailStatus) {
         emailStatus = json.emailStatus;
       }
-      if (json.emailNote) {
+      if (json?.emailNote) {
         emailNote = json.emailNote;
       }
-      if (json.template) {
+      if (json?.template) {
         emailSubject = json.template.subject;
         templateBody = json.template.bodyText;
         attachmentName = json.template.attachmentName;
@@ -251,20 +240,6 @@ export function ContactPage({ cms, onStartQuote }: ContactPageProps) {
             </div>
 
             <div className="mt-6 space-y-2.5 border-t border-slate-200/80 pt-6">
-              <button
-                type="button"
-                disabled={downloadingProfile}
-                onClick={handleDownloadCompanyProfile}
-                className="flex min-h-[46px] w-full items-center justify-center gap-2 rounded-xl border border-[#111827] bg-white px-4 text-xs font-bold text-[#111827] transition-colors hover:border-[#00b294] hover:bg-[#00b294] hover:text-white disabled:opacity-60"
-              >
-                {downloadingProfile ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <FileDown className="h-4 w-4" />
-                )}
-                <span>{downloadingProfile ? 'Preparing PDF...' : 'Download Process Details'}</span>
-              </button>
-
               <a
                 href={`https://wa.me/${cleanWaDigits}?text=${encodeURIComponent(
                   `Hello ${brandName}, I would like to discuss UAE company formation starting at AED ${cms.zeroVisaPriceAed.toLocaleString()}.`
@@ -332,14 +307,6 @@ export function ContactPage({ cms, onStartQuote }: ContactPageProps) {
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleDownloadCompanyProfile}
-                  className="inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-[#ff0031] px-5 text-xs font-bold text-white hover:bg-[#D90029]"
-                >
-                  <FileDown className="h-4 w-4" />
-                  <span>Download Process Details</span>
-                </button>
                 <button
                   type="button"
                   onClick={() => onStartQuote('Free Zone', 1)}

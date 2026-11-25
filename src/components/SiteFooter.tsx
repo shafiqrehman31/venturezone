@@ -31,7 +31,7 @@ export function SiteFooter({
     }
   }
 
-  const socialLinks = [
+  const configuredSocialLinks = [
     {
       name: 'LinkedIn',
       url: cms.socialLinkedin?.trim(),
@@ -79,7 +79,23 @@ export function SiteFooter({
         </svg>
       ),
     },
-  ].filter((s) => Boolean(s.url));
+  ];
+
+  const activeLinks = configuredSocialLinks.filter((s) => Boolean(s.url));
+  const socialLinks =
+    activeLinks.length > 0
+      ? activeLinks
+      : configuredSocialLinks
+          .slice(0, 3)
+          .map((s) => ({
+            ...s,
+            url:
+              s.name === 'LinkedIn'
+                ? 'https://www.linkedin.com'
+                : s.name === 'Instagram'
+                ? 'https://www.instagram.com'
+                : 'https://x.com',
+          }));
 
   return (
     <footer className="relative overflow-hidden border-t border-slate-800 bg-[#0B0F17] text-slate-200">
@@ -110,8 +126,8 @@ export function SiteFooter({
               international founders launching in Dubai Free Zones and Mainland.
             </p>
 
-            {/* Social Media Links (hidden for now; ready for future activation) */}
-            {false && socialLinks.length > 0 && (
+            {/* Social Media Links */}
+            {socialLinks.length > 0 && (
               <div className="mt-5">
                 <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                   Connect With Us

@@ -11,13 +11,10 @@ import {
   BookOpen,
   Check,
   ChevronDown,
-  FileDown,
-  Loader2,
   Search,
   Star,
   X,
 } from 'lucide-react';
-import { downloadProposalBooklet } from '../lib/downloadBooklet';
 import difcArchImg from '../assets/images/difc_spatial_arch_1794581930099.jpg';
 import bankingSuiteImg from '../assets/images/dubai_banking_suite_1794581931541.jpg';
 import {
@@ -83,21 +80,6 @@ export function LandingPage() {
   const [activeTrackingCode, setActiveTrackingCode] = useState<string | null>(null);
   const [trackedOrder, setTrackedOrder] = useState<OrderStatusPublic | null>(null);
   const [trackingLookupError, setTrackingLookupError] = useState('');
-  const [downloadingBooklet, setDownloadingBooklet] = useState(false);
-  const [bookletError, setBookletError] = useState('');
-
-  async function handleDownloadBooklet() {
-    if (downloadingBooklet) return;
-    setBookletError('');
-    setDownloadingBooklet(true);
-    try {
-      await downloadProposalBooklet();
-    } catch (err) {
-      setBookletError(err instanceof Error ? err.message : 'Unable to download PDF right now.');
-    } finally {
-      setDownloadingBooklet(false);
-    }
-  }
 
   useEffect(() => {
     function handlePopState() {
@@ -590,26 +572,6 @@ export function LandingPage() {
                 </span>
                 .
               </p>
-              <div className="mt-4">
-                <button
-                  type="button"
-                  disabled={downloadingBooklet}
-                  onClick={handleDownloadBooklet}
-                  className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border border-slate-300 bg-white/90 px-4 text-xs font-bold text-[#111827] transition-colors hover:border-[#00b294] hover:bg-white disabled:opacity-60"
-                >
-                  {downloadingBooklet ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-[#00b294]" />
-                  ) : (
-                    <FileDown className="h-4 w-4 text-[#00b294]" />
-                  )}
-                  <span>
-                    {downloadingBooklet ? 'Preparing PDF...' : 'Download Process Details'}
-                  </span>
-                </button>
-                {bookletError && (
-                  <p className="mt-2 text-xs font-medium text-red-600">{bookletError}</p>
-                )}
-              </div>
             </div>
 
             <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">

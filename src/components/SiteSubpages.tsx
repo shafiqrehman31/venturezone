@@ -6,7 +6,6 @@ import {
   Check,
   CheckCircle2,
   Clock,
-  FileDown,
   Globe2,
   Landmark,
   Loader2,
@@ -18,7 +17,6 @@ import {
   DMCC_BOOKLET_CATEGORIES,
   detectDefaultCountryCode,
 } from '../data/defaults';
-import { downloadProposalBooklet } from '../lib/downloadBooklet';
 import { OperationType, db, handleFirestoreError } from '../lib/firebase';
 import { safeReadJson } from '../lib/safeJson';
 import type {
@@ -101,17 +99,6 @@ const FREE_ZONES = [
 
 export function FreeZonesPage({ menuItem, onStartQuote }: SubpageProps) {
   const [filterType, setFilterType] = useState<'all' | 'dubai' | 'budget'>('all');
-  const [downloadingBooklet, setDownloadingBooklet] = useState(false);
-
-  async function handleBookletDownload() {
-    if (downloadingBooklet) return;
-    setDownloadingBooklet(true);
-    try {
-      await downloadProposalBooklet();
-    } finally {
-      setDownloadingBooklet(false);
-    }
-  }
 
   const visibleZones = FREE_ZONES.filter((z) => {
     if (filterType === 'dubai') return z.id !== 'rakez';
@@ -148,19 +135,6 @@ export function FreeZonesPage({ menuItem, onStartQuote }: SubpageProps) {
             >
               <span>{menuItem?.ctaLabel || 'Calculate Free Zone Setup'}</span>
               <ArrowRight className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              disabled={downloadingBooklet}
-              onClick={handleBookletDownload}
-              className="inline-flex min-h-[48px] items-center gap-2 rounded-xl border border-slate-300 bg-white/85 px-5 text-sm font-bold text-[#111827] transition-colors hover:border-[#00b294] hover:bg-white disabled:opacity-60"
-            >
-              {downloadingBooklet ? (
-                <Loader2 className="h-4 w-4 animate-spin text-[#00b294]" />
-              ) : (
-                <FileDown className="h-4 w-4 text-[#00b294]" />
-              )}
-              <span>{downloadingBooklet ? 'Preparing PDF...' : 'Download Process Details'}</span>
             </button>
           </div>
         </div>
@@ -272,21 +246,6 @@ export function FreeZonesPage({ menuItem, onStartQuote }: SubpageProps) {
               All categories reflect venturezoneuae.com&apos;s transparent UAE pricing schedule with formation packages starting from AED 5,999.
             </p>
           </div>
-          <button
-            type="button"
-            disabled={downloadingBooklet}
-            onClick={handleBookletDownload}
-            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-[#00b294] px-4 text-xs font-bold text-white transition-colors hover:bg-[#00967C] disabled:opacity-60"
-          >
-            {downloadingBooklet ? (
-              <Loader2 className="h-4 w-4 animate-spin text-white" />
-            ) : (
-              <FileDown className="h-4 w-4 text-white" />
-            )}
-            <span>
-              {downloadingBooklet ? 'Preparing PDF...' : 'Download Process Details'}
-            </span>
-          </button>
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
